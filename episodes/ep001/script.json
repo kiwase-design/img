@@ -1,0 +1,76 @@
+{
+  "episode": 1,
+  "title": "월요일 아침",
+  "caption": "오늘도 출근한 고양이 1화 🐱 월요일 아침\n\n월요일엔 눈이 안 떠지는데… 간식 얘기엔 번쩍 뜨이는 거 저만 그런가요? 😼\n\n#오늘도출근한고양이 #냥대리 #인스타툰 #직장인공감 #월요병 #고양이웹툰 #직장인툰 #공감툰",
+  "panels": [
+    {
+      "cut": 1,
+      "characters": [
+        "nyang_daeri"
+      ],
+      "scene": "Monday 9 AM in a simple office. Nyang Daeri is slumped face-down on his desk next to a computer monitor, eyes closed, totally exhausted, a small wall calendar on the partition shows the word MON in big letters. Tired gloomy mood, soft morning light.",
+      "dialogues": [
+        {
+          "speaker": "nyang_daeri",
+          "text": "월요일엔… 눈이 안 떠진다냥…",
+          "side": "center"
+        }
+      ]
+    },
+    {
+      "cut": 2,
+      "characters": [
+        "meong_bujang",
+        "nyang_daeri"
+      ],
+      "scene": "Meong Bujang bursts in energetically from the right side with a huge excited smile, one fist raised high, sparkles around him. Nyang Daeri, still at his desk on the left, lifts his head slightly with dead half-open eyes.",
+      "dialogues": [
+        {
+          "speaker": "meong_bujang",
+          "text": "냥대리! 이번 주도 힘차게 가보자고!!",
+          "side": "right"
+        },
+        {
+          "speaker": "nyang_daeri",
+          "text": "…네에냥",
+          "side": "left"
+        }
+      ]
+    },
+    {
+      "cut": 3,
+      "characters": [
+        "meong_bujang",
+        "nyang_daeri"
+      ],
+      "scene": "Close-up. Meong Bujang on the right casually holds up a pack of cat treat sticks. Nyang Daeri on the left suddenly opens his eyes wide, eyes sparkling with shock and excitement, ears straight up, dramatic shiny background effect.",
+      "dialogues": [
+        {
+          "speaker": "meong_bujang",
+          "text": "아, 오늘 아침 회의 간식은 츄르야~",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 4,
+      "characters": [
+        "nyang_daeri",
+        "ham_jumin"
+      ],
+      "scene": "Small meeting room with a long table. Nyang Daeri sits alone in the front seat, perfectly upright with a notebook ready, eyes sparkling, super motivated. Ham Jumin peeks in through the open door on the right, looking surprised and confused.",
+      "dialogues": [
+        {
+          "speaker": "ham_jumin",
+          "text": "회의… 30분 남았는데요…?",
+          "side": "right"
+        },
+        {
+          "speaker": "nyang_daeri",
+          "text": "준비성이 생명이다냥.",
+          "side": "left"
+        }
+      ]
+    }
+  ]
+}
