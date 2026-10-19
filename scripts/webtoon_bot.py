@@ -369,8 +369,8 @@ def rerender():
 def dryrun():
     """게시·이슈 없이 다음 편 대본+사진을 checks/dryrun 에 만들어 본다 (테스트용)."""
     d = "checks/dryrun/ep099"
-    shutil.rmtree("checks/dryrun", ignore_errors=True)
-    sh("python", "scripts/write_episode.py", d)
+    if not os.path.exists(f"{d}/script.json"):  # 대본이 있으면 재사용하고 사진만 다시
+        sh("python", "scripts/write_episode.py", d)
     sh("python", "scripts/render_episode.py", d)
     git_push_paths(["checks"], "드라이런 결과")
 

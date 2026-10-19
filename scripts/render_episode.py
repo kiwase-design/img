@@ -85,6 +85,19 @@ def relevance(hit, words):
     return score
 
 
+def download(hit):
+    """사진 파일 내려받기. 너무 빨리 받으면 429가 나서 쉬었다 재시도, 그래도 안 되면 작은 크기로."""
+    for attempt, url in enumerate([hit["largeImageURL"]] * 4 + [hit["webformatURL"]]):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code != 429:
+                raise
+            time.sleep(10 * (attempt + 1))
+    raise RuntimeError("사진 다운로드 429 반복")
+
+
 def main_subject_ok(hit, word):
     """검색어 첫 단어(핵심 대상)가 사진의 대표 태그(앞쪽 3개)에 들어 있어야 함."""
     top = [t.strip() for t in hit.get("tags", "").lower().split(",")[:3]]
@@ -112,8 +125,7 @@ def fetch_photo(key, query, avoid):
             continue
         hits.sort(key=lambda h: (relevance(h, words), h.get("likes", 0)), reverse=True)
         h = random.choice(hits[:5])  # 잘 맞는 상위 5장 중 무작위 → '그림 다시' 때 다른 사진
-        with urllib.request.urlopen(urllib.request.Request(h["largeImageURL"], headers=UA), timeout=60) as r:
-            data = r.read()
+        data = download(h)
         return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q, "tags": h.get("tags", "")}
     return None, None
 
@@ -295,6 +307,7 @@ def main():
                 report.append(f"- {n}장: ❌ '{query}' 사진 없음")
                 continue
             open(raw, "wb").write(img)
+            time.sleep(3)  # 연속 요청 완화
             credits[str(n)] = cred
             avoid.add(cred["id"])
             report.append(f"- {n}장: ✅ 사진 ({cred['query']} · {cred['user']})")
