@@ -15,6 +15,7 @@ import json
 import os
 import random
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -58,12 +59,16 @@ def search_pixabay(key, query, orientation):
         "key": key, "q": query[:100], "image_type": "photo", "orientation": orientation,
         "safesearch": "true", "per_page": 40, "min_width": 1000, "order": "popular",
     })
-    try:
-        with urllib.request.urlopen(urllib.request.Request(f"{PIXABAY}?{params}", headers=UA), timeout=60) as r:
-            return json.loads(r.read()).get("hits", [])
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", "ignore")[:200]
-        raise RuntimeError(f"Pixabay HTTP {e.code}: {body}") from None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(f"{PIXABAY}?{params}", headers=UA), timeout=60) as r:
+                return json.loads(r.read()).get("hits", [])
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 3:  # 분당 100회 제한 → 잠시 쉬었다 재시도
+                time.sleep(int(e.headers.get("X-RateLimit-Reset", "30") or 30) + 2)
+                continue
+            body = e.read().decode("utf-8", "ignore")[:200]
+            raise RuntimeError(f"Pixabay HTTP {e.code}: {body}") from None
 
 
 STOP = {"in", "at", "the", "a", "an", "of", "and", "with", "on", "to", "for"}
