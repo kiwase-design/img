@@ -85,6 +85,12 @@ def relevance(hit, words):
     return score
 
 
+def main_subject_ok(hit, word):
+    """검색어 첫 단어(핵심 대상)가 사진의 대표 태그(앞쪽 3개)에 들어 있어야 함."""
+    top = [t.strip() for t in hit.get("tags", "").lower().split(",")[:3]]
+    return any(word[:5] in t for t in top)
+
+
 def fetch_photo(key, query, avoid):
     """검색어와 태그가 가장 잘 맞는 사진을 골라 (바이트, 출처) 반환. 안 맞으면 검색어를 줄여 다시 찾는다."""
     words = [w for w in query.lower().split() if w not in STOP]
@@ -99,7 +105,7 @@ def fetch_photo(key, query, avoid):
         hits = []
         for ori in ("vertical", "all"):
             hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
-            hits = [h for h in hits if relevance(h, qw) >= need]
+            hits = [h for h in hits if relevance(h, qw) >= need and main_subject_ok(h, qw[0])]
             if len(hits) >= 3:
                 break
         if not hits:
