@@ -1,0 +1,34 @@
+name: Gemini API 점검
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/check-gemini.yml"
+      - "scripts/check_gemini.py"
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gemini API 호출 테스트
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/check_gemini.py
+
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add checks/gemini_check.md
+          git diff --cached --quiet || git commit -m "Gemini API 점검 결과 [skip ci]"
+          git push
