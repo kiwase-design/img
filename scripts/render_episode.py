@@ -66,21 +66,44 @@ def search_pixabay(key, query, orientation):
         raise RuntimeError(f"Pixabay HTTP {e.code}: {body}") from None
 
 
+STOP = {"in", "at", "the", "a", "an", "of", "and", "with", "on", "to", "for"}
+
+
+def relevance(hit, words):
+    """사진 태그에 검색어 단어가 몇 개나 들어있는지 (단어 앞부분 일치, 복수형 허용)."""
+    tags = [t.strip() for t in hit.get("tags", "").lower().split(",")]
+    tagwords = {w for t in tags for w in t.split()}
+    score = 0
+    for w in words:
+        if any(tw == w or tw.startswith(w[:5]) for tw in tagwords):
+            score += 1
+    return score
+
+
 def fetch_photo(key, query, avoid):
-    """검색어로 사진 하나를 골라 (바이트, 출처) 반환. 결과가 없으면 검색어를 점점 넓힌다."""
-    words = query.split()
-    tries = [(query, "vertical"), (query, "all")]
+    """검색어와 태그가 가장 잘 맞는 사진을 골라 (바이트, 출처) 반환. 안 맞으면 검색어를 줄여 다시 찾는다."""
+    words = [w for w in query.lower().split() if w not in STOP]
+    tries = [" ".join(words)]
     if len(words) > 2:
-        tries += [(" ".join(words[:2]), "vertical"), (" ".join(words[:2]), "all")]
-    tries += [(words[0] + " travel", "all"), ("travel", "vertical")]
-    for q, ori in tries:
-        hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
+        tries.append(" ".join(words[:2]))
+    if len(words) > 1:
+        tries += [" ".join(words[i:i + 2]) for i in range(1, len(words) - 1)]
+    for q in tries:
+        qw = q.split()
+        need = len(qw) if len(qw) <= 2 else len(qw) - 1  # 대부분의 단어가 태그에 있어야 통과
+        hits = []
+        for ori in ("vertical", "all"):
+            hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
+            hits = [h for h in hits if relevance(h, qw) >= need]
+            if len(hits) >= 3:
+                break
         if not hits:
             continue
-        h = random.choice(hits[:8])  # 상위 결과 중 무작위 → '사진 다시' 때 다른 사진
+        hits.sort(key=lambda h: (relevance(h, words), h.get("likes", 0)), reverse=True)
+        h = random.choice(hits[:5])  # 잘 맞는 상위 5장 중 무작위 → '그림 다시' 때 다른 사진
         with urllib.request.urlopen(urllib.request.Request(h["largeImageURL"], headers=UA), timeout=60) as r:
             data = r.read()
-        return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q}
+        return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q, "tags": h.get("tags", "")}
     return None, None
 
 

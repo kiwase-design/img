@@ -106,8 +106,9 @@ Korean ("ko"): natural Korean translation a Korean would actually say, not word-
 key_phrases: 3–5 items, mostly lines the TRAVELER says (ready to copy), plus at most one staff question she must understand.
 
 Photos come from a free stock photo site (Pixabay). For each slide write a SHORT English search query (2–4 common words)
-that will find a good real photo for it. Prefer places and objects over faces (e.g. "airport check in", "suitcase luggage",
-"passport boarding pass", "hotel reception desk", "coffee cup cafe"). Make the 6 queries different from each other:
+that will find a good real photo for it. Use only simple common NOUNS that work as photo tags, no verbs or phrases
+(good: "airport terminal", "suitcase airport", "passport ticket", "hotel reception", "coffee cafe";
+bad: "check in counter", "boarding pass", "asking for directions"). Prefer places and objects over faces. Make the 6 queries different from each other:
 mix wide place shots and close-up object shots.
 
 Return JSON only:
