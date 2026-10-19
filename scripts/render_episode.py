@@ -180,7 +180,7 @@ def compose_dialogue(raw, s, panel, out, total):
     y = top + pad
     for i, dl in enumerate(panel["dialogues"]):
         hero = dl["speaker"] == HERO_ID
-        badge(d, mx + pad, y, HERO["name"] if hero else "현지인", ACCENT if hero else STAFF, f_lb)
+        badge(d, mx + pad, y, HERO["name"] if hero else s.get("other_label", "직원"), ACCENT if hero else STAFF, f_lb)
         y += 54
         y = text_block(d, mx + pad, y, dl["en"], f_en, INK, max_w)
         y = text_block(d, mx + pad, y + 2, dl["ko"], f_ko, SUB, max_w) + 22

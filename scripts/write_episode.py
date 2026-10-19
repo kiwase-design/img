@@ -111,6 +111,7 @@ Images: every exchange gets one photo. Write "scene" in English as a photo descr
 Return JSON only:
 {{
   "title": "Korean post title, max 14 chars (e.g. 공항 체크인 영어)",
+  "other_label": "Korean label for the other person, 2–3 chars: 직원 / 현지인 / 기사님 / 의사 / 약사 etc.",
   "headline": "Korean cover headline, max 10 chars (e.g. 공항 체크인)",
   "sub": "Korean cover subline, max 16 chars, catchy (e.g. 이 네 마디면 끝!)",
   "cover_scene": "English photo description for the cover: {HERO['name']} at this place, looking at the camera with a friendly smile",
