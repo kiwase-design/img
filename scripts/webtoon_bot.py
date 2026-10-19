@@ -143,7 +143,8 @@ def render(d, force=False):
     args = ["python", "scripts/render_episode.py", d] + (["--force"] if force else [])
     sh(*args)
     finals = glob.glob(f"{d}/final/*.png")
-    if len(finals) < 4:
+    expected = len(json.load(open(f"{d}/script.json", encoding="utf-8"))["panels"]) + 2
+    if len(finals) < expected:
         report = open(f"{d}/report.md", encoding="utf-8").read() if os.path.exists(f"{d}/report.md") else ""
         raise RuntimeError(f"그림 생성 실패\n\n{report}")
 
