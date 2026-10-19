@@ -7,9 +7,6 @@ on:
       episode:
         description: "회차 폴더 (예: episodes/ep001)"
         required: true
-  push:
-    paths:
-      - "episodes/*/PUBLISH"
 
 permissions:
   contents: write

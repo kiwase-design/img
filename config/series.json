@@ -1,0 +1,43 @@
+{
+  "title": "기와세의 여행일기",
+  "short_title": "기와세의 여행일기",
+  "panels": 6,
+  "structure": [
+    "소개할 도시 (가족이 도착, 도시 한 줄 소개)",
+    "볼거리 (대표 명소 1~2곳)",
+    "먹을거리 (대표 음식 1~2개, 흑곰이 먹는 장면)",
+    "기타 구경거리 (시장·골목·체험 등)",
+    "단점 (물가, 날씨, 인파, 교통 등 솔직한 단점)",
+    "요약 정리 + 좋아요/저장 강요 (기와세가 독자를 향해)"
+  ],
+  "style": "Rough quick pencil doodle on plain white paper, like a hasty sketch in a travel diary. Thin wobbly black pencil lines, loose and simple, mostly black and white with only a few light colored-pencil touches (pink blush on cheeks, a little color on food or landmarks). Very minimal background, just a few lines suggesting the place. Cute, clumsy, hand-drawn feeling. NOT polished, NOT digital vector art, NOT shaded.",
+  "characters": {
+    "giwase": {
+      "name": "기와세",
+      "role": "주인공, 43세 아빠 새, 여행 5년차, ENTJ 계획형, 부산 사투리",
+      "desc": "Giwase, a 43-year-old bird dad: tall rounded bean-shaped white body, a single swooping roof-tile-shaped hair curl with a small loop on top of the head, tiny dot eyes, small triangular beak, light pink blushing cheeks drawn with tiny dashes, sparse short stubble dots around the beak, small flat wing arms, thin stick legs with tiny three-line feet.",
+      "ref": "characters/giwase.png",
+      "base_ref": "characters/giwase_sketch.jpg"
+    },
+    "heukgom": {
+      "name": "흑곰",
+      "role": "아내, 흑색 그리즐리 베어, 열정 과다, 늘 먹고 있음",
+      "desc": "Heukgom, the mom: a big round black grizzly bear (body filled with loose black pencil scribble), small round ears, tiny dot eyes, pink blush, cheerful wide mouth, always holding or eating some food or snack.",
+      "ref": "characters/heukgom.png"
+    },
+    "badapyobum": {
+      "name": "바다표범",
+      "role": "아들 14세, 소심함, 느긋하고 느림, 눈치 없음",
+      "desc": "Badapyobum, the 14-year-old son: a chubby gray harbor seal with a few spots, sleepy half-closed dot eyes, little whiskers, small flippers, slouching lazily, slow and spaced-out expression, carries a small backpack.",
+      "ref": "characters/badapyobum.png"
+    },
+    "omokunui": {
+      "name": "오목눈이",
+      "role": "딸, 막내 10세, 성깔 있음, 말 많음, 아는 게 약간 부족함",
+      "desc": "Omokunui, the 10-year-old daughter: a tiny round fluffy white long-tailed tit bird (smaller than everyone), a dark stripe above each dot eye, tiny beak, very long thin tail, short legs, sassy feisty expression with eyebrows angled.",
+      "ref": "characters/omokunui.png"
+    }
+  },
+  "hashtags": ["#기와세의여행일기", "#여행툰", "#인스타툰", "#여행정보", "#가족여행", "#여행일기"],
+  "font_url": "https://github.com/google/fonts/raw/main/ofl/nanumpenscript/NanumPenScript-Regular.ttf"
+}

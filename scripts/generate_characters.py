@@ -1,61 +1,42 @@
-"""캐릭터 기준 설정화 생성 (유료 등급).
+"""캐릭터 기준 설정화 생성 (config/series.json 기반).
 
-series_bible.md 의 설정을 바탕으로 주인공·조연 설정화를 그려
-characters/ 폴더에 저장한다. 결과 요약은 checks/character_gen.md 에 기록.
+- 설정화가 아직 없는 캐릭터만 그린다. 다시 그리려면 해당 png를 지우고 실행.
+- 주인공의 원본 스케치(base_ref)를 모든 캐릭터의 화풍 기준으로 함께 넣는다.
+결과 요약은 checks/character_gen.md 에 기록.
 """
 import base64
 import json
+import mimetypes
 import os
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone, timedelta
 
 BASE = "https://generativelanguage.googleapis.com/v1beta"
-MODELS = ["gemini-3-pro-image", "gemini-3.1-flash-image"]  # 앞에서부터 시도
-OUT_DIR = "characters"
+MODELS = ["gemini-3-pro-image", "gemini-3.1-flash-image"]
 REPORT = "checks/character_gen.md"
+SERIES = json.load(open("config/series.json", encoding="utf-8"))
 
-STYLE = (
-    "Korean Instagram webtoon (instatoon) character design sheet. "
-    "Simple flat 2D illustration, bold clean black outlines, soft pastel colors, "
-    "cute round chibi-like proportions, plain pure white background, no text, no logos, "
-    "no watermark. Show the SAME character three times side by side: "
-    "front view, three-quarter view, and side view, full body, standing, neutral pose."
+SHEET = (
+    "Character design sheet for a Korean Instagram webtoon. "
+    "Show the SAME character three times side by side: front view, three-quarter view, side view, "
+    "full body, standing, neutral pose, on plain white paper. No text, no labels, no logos."
 )
 
-CHARACTERS = {
-    "nyang_daeri": (
-        "Main character 'Nyang Daeri': an anthropomorphic young office-worker cat. "
-        "Gray tabby fur with darker gray stripes, big round bright green eyes, "
-        "white muzzle and chest, wearing a white short-sleeve dress shirt and a navy blue necktie, "
-        "gray slacks. Personality: lazy but sharp, sly half-lidded smile."
-    ),
-    "meong_bujang": (
-        "Supporting character 'Meong Bujang': an anthropomorphic golden retriever office manager. "
-        "Fluffy golden fur, floppy ears, big cheerful open-mouth smile, slightly taller and bigger "
-        "than a cat, wearing a light blue dress shirt with rolled sleeves and a red necktie, "
-        "brown slacks. Personality: overly enthusiastic boss, always smiling."
-    ),
-    "ham_jumin": (
-        "Supporting character 'Ham Jumin': an anthropomorphic hamster office worker, small and round. "
-        "Orange-cream and white fur, chubby cheeks, small black eyes, round glasses, "
-        "wearing a beige cardigan over a white shirt, holding a tiny notebook. "
-        "Personality: timid and worried, slightly nervous expression."
-    ),
-}
+
+def inline(path):
+    mime = mimetypes.guess_type(path)[0] or "image/png"
+    with open(path, "rb") as f:
+        return {"inlineData": {"mimeType": mime, "data": base64.b64encode(f.read()).decode()}}
 
 
-def generate(key, model, prompt):
+def generate(key, model, parts):
     body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseModalities": ["IMAGE"],
-            "imageConfig": {"aspectRatio": "16:9"},
-        },
+        "contents": [{"parts": parts}],
+        "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "16:9"}},
     }
     req = urllib.request.Request(
-        f"{BASE}/models/{model}:generateContent",
-        method="POST",
+        f"{BASE}/models/{model}:generateContent", method="POST",
         headers={"x-goog-api-key": key, "Content-Type": "application/json"},
         data=json.dumps(body).encode(),
     )
@@ -64,49 +45,58 @@ def generate(key, model, prompt):
             data = json.loads(r.read())
     except urllib.error.HTTPError as e:
         try:
-            msg = json.loads(e.read()).get("error", {}).get("message", "")
+            msg = json.loads(e.read()).get("error", {}).get("message", "")[:200]
         except Exception:
             msg = ""
         return None, f"HTTP {e.code} — {msg}"
-
     for cand in data.get("candidates", []):
         for part in cand.get("content", {}).get("parts", []):
-            inline = part.get("inlineData") or part.get("inline_data")
-            if inline and inline.get("data"):
-                return base64.b64decode(inline["data"]), None
-    reason = (data.get("candidates") or [{}])[0].get("finishReason", "이미지 없음")
-    return None, f"응답에 이미지 없음 ({reason})"
+            inl = part.get("inlineData") or part.get("inline_data")
+            if inl and inl.get("data"):
+                return base64.b64decode(inl["data"]), None
+    return None, "응답에 이미지 없음"
 
 
 def main():
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     kst = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M KST")
     lines = ["# 캐릭터 설정화 생성 결과", "", f"- 실행 시각: {kst}"]
-    os.makedirs(OUT_DIR, exist_ok=True)
+    chars = SERIES["characters"]
+    main_id = next(iter(chars))
+    base_ref = chars[main_id].get("base_ref")
 
-    if not key:
-        lines.append("- ❌ `GEMINI_API_KEY` 시크릿 없음")
-        return write(lines)
+    for cid, c in chars.items():
+        if os.path.exists(c["ref"]):
+            lines.append(f"- {c['name']}: 이미 있음 (건너뜀)")
+            continue
+        parts, notes = [], []
+        if base_ref and os.path.exists(base_ref):
+            parts.append(inline(base_ref))
+            notes.append("Image 1 is the original hand-drawn sketch of the main character "
+                         f"{chars[main_id]['name']}. Copy its drawing style exactly (line quality, simplicity, proportions).")
+        main_sheet = chars[main_id]["ref"]
+        if cid != main_id and os.path.exists(main_sheet):
+            parts.append(inline(main_sheet))
+            notes.append(f"Image {len(parts)} is the finished design sheet of the main character; "
+                         "the new character must look like they belong in the same family / same comic.")
+        prompt = f"{' '.join(notes)}\n\n{SHEET}\n\nArt style: {SERIES['style']}\n\nCharacter: {c['desc']}"
+        if cid == main_id:
+            prompt += "\n\nThis character must look exactly like the sketch in image 1 — same face, hair loop, body shape."
+        parts.append({"text": prompt})
 
-    for name, desc in CHARACTERS.items():
-        prompt = f"{STYLE}\n\nCharacter: {desc}"
         errors = []
         for model in MODELS:
-            img, err = generate(key, model, prompt)
+            img, err = generate(key, model, parts)
             if img:
-                path = f"{OUT_DIR}/{name}.png"
-                with open(path, "wb") as f:
+                os.makedirs(os.path.dirname(c["ref"]), exist_ok=True)
+                with open(c["ref"], "wb") as f:
                     f.write(img)
-                lines.append(f"- {name}: ✅ `{path}` ({model}, {len(img)//1024}KB)")
+                lines.append(f"- {c['name']}: ✅ `{c['ref']}` ({model})")
                 break
             errors.append(f"{model}: {err}")
         else:
-            lines.append(f"- {name}: ❌ " + " / ".join(errors))
+            lines.append(f"- {c['name']}: ❌ " + " / ".join(errors))
 
-    write(lines)
-
-
-def write(lines):
     os.makedirs(os.path.dirname(REPORT), exist_ok=True)
     with open(REPORT, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
