@@ -274,9 +274,14 @@ def command():
     if text == "승인":
         open(f"{d}/APPROVED", "w").write(now().isoformat())
         git_push(f"{d} 승인")
-        late = now().hour >= 21
-        comment(n, "👍 승인됐어요. " + ("오늘 9시가 지나서 **내일 밤 9시**에 게시돼요. 바로 올리려면 `지금 게시`."
-                                     if late else "**오늘 밤 9시**에 게시돼요."))
+        t = now()
+        if t.hour < 21:
+            msg = "**오늘 밤 9시**에 게시돼요."
+        elif t.hour == 21 and t.minute < 30:
+            msg = "9시가 지나서 **잠시 후(21:33 전후)** 게시돼요. 바로 올리려면 `지금 게시`."
+        else:
+            msg = "오늘 게시 시간이 지나서 **내일 밤 9시**에 게시돼요. 바로 올리려면 `지금 게시`."
+        comment(n, "👍 승인됐어요. " + msg)
     elif text == "지금 게시":
         open(f"{d}/APPROVED", "w").write(now().isoformat())
         git_push(f"{d} 승인")
