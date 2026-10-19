@@ -1,0 +1,79 @@
+{
+  "episode": 2,
+  "title": "점심 메뉴",
+  "caption": "오늘도 출근한 고양이 2화 🐱 점심 메뉴\n\n'먹고 싶은 거 다 골라봐'의 진짜 의미…\n결국 부장님 최애 국밥집으로 직행하는 거 국룰 아닌가요? 😂\n\n#오늘도출근한고양이 #냥대리 #인스타툰 #직장인공감 #공감툰 #회사원일상 #점심시간 #답정너",
+  "panels": [
+    {
+      "cut": 1,
+      "characters": [
+        "nyang_daeri",
+        "ham_jumin"
+      ],
+      "scene": "Simple pastel office background. On the left, Nyang_daeri sits at his desk, resting his cheek on one paw with a hungry, dreamy expression. On the right, Ham_jumin nervously fidgets with his paws while checking the clock.",
+      "dialogues": [
+        {
+          "speaker": "nyang_daeri",
+          "text": "오늘 점심은 뭐 먹지냥…",
+          "side": "left"
+        },
+        {
+          "speaker": "ham_jumin",
+          "text": "아무거나 다 좋아요…",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 2,
+      "characters": [
+        "nyang_daeri",
+        "ham_jumin",
+        "meong_bujang"
+      ],
+      "scene": "On the far right, Meong_bujang suddenly appears, standing proudly with hands on his hips and a wide, beaming smile. In the center, Ham_jumin flinches slightly. On the left, Nyang_daeri perks his ears up with hopeful green eyes.",
+      "dialogues": [
+        {
+          "speaker": "meong_bujang",
+          "text": "오늘은 먹고 싶은 거 골라봐!",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 3,
+      "characters": [
+        "nyang_daeri",
+        "meong_bujang"
+      ],
+      "scene": "Split focus. On the left, Nyang_daeri happily raises a paw with sparkling eyes. On the right, Meong_bujang enthusiastically gives a thumbs up, completely shouting his own choice without listening.",
+      "dialogues": [
+        {
+          "speaker": "nyang_daeri",
+          "text": "저는 연어 덮밥이요냥!",
+          "side": "left"
+        },
+        {
+          "speaker": "meong_bujang",
+          "text": "좋아! 뜨끈한 국밥 가자!",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 4,
+      "characters": [
+        "nyang_daeri",
+        "meong_bujang"
+      ],
+      "scene": "Inside a restaurant at a wooden table. On the right, Meong_bujang is happily eating from a boiling hot stone pot with steam rising. On the left, Nyang_daeri sits with drooping ears and a completely soul-drained expression, cautiously blowing on a hot spoon.",
+      "dialogues": [
+        {
+          "speaker": "nyang_daeri",
+          "text": "…물어나 보지 말지냥.",
+          "side": "left"
+        }
+      ]
+    }
+  ],
+  "writer_model": "gemini-3.8-flash"
+}
