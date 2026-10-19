@@ -35,6 +35,8 @@ STYLE = (
     f"Art style: {SERIES['style']} "
     "Draw the characters EXACTLY as shown in the attached character reference sheets "
     "(same face, body shape, hair, proportions, same drawing style). "
+    "They are simple doodle mascots: never draw them as realistic animals or birds, "
+    "keep their exact bean / round body shapes from the sheets. "
     "IMPORTANT: keep the top 28% of the image as calm, plain, empty paper "
     "(no characters, no objects) because speech bubbles will be added there later. "
     "One full-bleed scene: no panel border, no frame lines, no inner panels. "
