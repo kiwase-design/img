@@ -70,21 +70,7 @@ def main():
             msg = data.get("error", {}).get("message", "")
             lines.append(f"- 텍스트 생성 ({text_model}): ❌ HTTP {status} — {msg}")
 
-    # 3) 이미지 모델 결제 상태 확인 — 오류 메시지 전문 기록
-    for model in ("gemini-3-pro-image", "gemini-3.1-flash-image"):
-        status, data = call("POST", f"models/{model}:generateContent", key, {
-            "contents": [{"parts": [{"text": "a small red dot on white"}]}],
-            "generationConfig": {"responseModalities": ["IMAGE"]},
-        })
-        if status == 200:
-            lines.append(f"- 이미지 생성 ({model}): ✅ 정상")
-        else:
-            err = data.get("error", {})
-            lines.append(f"- 이미지 생성 ({model}): ❌ HTTP {status} / status={err.get('status')}")
-            lines.append(f"  - 메시지: {err.get('message', '')}")
-            for d in err.get("details", []):
-                lines.append(f"  - 상세: {json.dumps(d, ensure_ascii=False)[:600]}")
-
+    # 이미지는 이제 Pixabay를 쓰므로 이미지 모델은 점검하지 않음 (비용 방지)
     write(lines)
 
 
