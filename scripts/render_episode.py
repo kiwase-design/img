@@ -115,19 +115,36 @@ def people_heavy(hit):
     return any(t in PEOPLE or t.split()[-1] in PEOPLE for t in top)
 
 
+PICK_LOG = []
+
+
+def get_bytes(url, tries=4):
+    for a in range(tries):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or a == tries - 1:
+                raise
+            time.sleep(8 * (a + 1))
+
+
 def gemini_pick(cands, context, query):
     """Gemini(텍스트 모델, 저렴)가 후보 미리보기를 직접 보고 가장 알맞은 사진 번호를 고른다. 실패하면 None."""
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key:
+        PICK_LOG.append("GEMINI_API_KEY 없음")
         return None
-    parts = []
-    for i, h in enumerate(cands):
+    parts, fails = [], 0
+    for i, h in enumerate(cands[:6]):
         try:
-            with urllib.request.urlopen(urllib.request.Request(h["webformatURL"], headers=UA), timeout=30) as r:
-                parts.append({"text": f"Photo {i}:"})
-                parts.append({"inlineData": {"mimeType": "image/jpeg", "data": base64.b64encode(r.read()).decode()}})
-        except Exception:
-            continue
+            data = get_bytes(h["previewURL"].replace("_150.", "_340.") if "_150." in h["previewURL"] else h["webformatURL"])
+            parts.append({"text": f"Photo {i}:"})
+            parts.append({"inlineData": {"mimeType": "image/jpeg", "data": base64.b64encode(data).decode()}})
+        except Exception as e:
+            fails += 1
+            PICK_LOG.append(f"미리보기 실패 {type(e).__name__} {e}")
+        time.sleep(1)
     if not parts:
         return None
     parts.append({"text": (
@@ -151,10 +168,12 @@ def gemini_pick(cands, context, query):
             txt = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
             return int(json.loads(txt)["best"])
         except urllib.error.HTTPError as e:
+            PICK_LOG.append(f"Gemini {m} HTTP {e.code} {e.read().decode('utf-8','ignore')[:150]}")
             if e.code == 404:
                 continue
             return None
-        except Exception:
+        except Exception as e:
+            PICK_LOG.append(f"Gemini {m} 응답 오류 {type(e).__name__} {e}")
             return None
     return None
 
@@ -186,6 +205,7 @@ def fetch_photo(key, query, avoid, context=""):
             continue  # 쓸 만한 게 없음 → 다음 검색어
         h = cands[best] if best is not None and 0 <= best < len(cands) else cands[0]
         data = download(h)
+        time.sleep(2)
         return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q,
                       "tags": h.get("tags", ""), "picked_by": "gemini" if best is not None else "tags"}
     return None, None
@@ -386,6 +406,8 @@ def main():
             compose_dialogue(raw, s, next(p for p in s["panels"] if p["cut"] == n), out, total)
         report.append(f"- {n}장: ✅ 합성")
 
+    if PICK_LOG:
+        report += ["", "## 사진 선택 로그"] + [f"- {x}" for x in PICK_LOG[:30]]
     with open(cpath, "w", encoding="utf-8") as f:
         json.dump(credits, f, ensure_ascii=False, indent=2)
     with open(f"{ep_dir}/report.md", "w", encoding="utf-8") as f:
