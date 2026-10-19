@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "scripts/generate_characters.py"
+      - "config/series.json"
 
 permissions:
   contents: write

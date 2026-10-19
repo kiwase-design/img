@@ -82,6 +82,10 @@ def main():
             parts.append(inline(main_sheet))
             notes.append(f"Image {len(parts)} is the finished design sheet of the main character; "
                          "the new character must look like they belong in the same family / same comic.")
+        if c.get("face_ref") and os.path.exists(c["face_ref"]):
+            parts.append(inline(c["face_ref"]))
+            notes.append(f"Image {len(parts)} shows this exact person: keep her FACE identical, "
+                         "but change hairstyle and outfit to match the description below.")
         prompt = f"{' '.join(notes)}\n\n{SHEET}\n\nArt style: {SERIES['style']}\n\nCharacter: {c['desc']}"
         if cid == main_id:
             prompt += "\n\nThis character must look exactly like the sketch in image 1 — same face, hair loop, body shape."
