@@ -1,10 +1,9 @@
 # #1 「공항 체크인 짐 부치기 영어」 렌더링 결과
 
-- 실행 시각: 2026-10-20 00:00 KST
-- 1장: ✅ 사진 (airport travel · wal_172619)
+- 실행 시각: 2026-10-20 00:02 KST
 - 1장: ✅ 합성
 - 2장: ✅ 합성
-- 3장: ✅ 사진 (suitcase airport · MichyDev)
+- 3장: ✅ 사진 (suitcase airport · tookapic)
 - 3장: ✅ 합성
 - 4장: ✅ 합성
 - 5장: ✅ 합성
