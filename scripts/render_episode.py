@@ -39,6 +39,15 @@ PHOTO_RULES = (
     "Absolutely no readable text, letters, numbers, signs, screens with text, logos, airline or brand names anywhere. "
     "No watermark, no captions, no speech bubbles."
 )
+# 장마다 다른 샷으로 찍어 사진이 비슷해 보이지 않게
+SHOTS = {
+    1: "MEDIUM SHOT (waist up), she looks into the camera with a bright smile, the place clearly visible behind her.",
+    2: "WIDE FULL SHOT: her whole body small-to-medium in frame, the whole place and the other person visible, establishing shot.",
+    3: "CLOSE-UP: tight on her face and shoulders (or on hands doing the action), strong background blur, expressive emotion.",
+    4: "OVER-THE-SHOULDER SHOT from behind the other person, she faces the camera in the mid-ground.",
+    5: "BUST SHOT from a low side angle (chest up), both people partly in frame, natural candid moment.",
+    6: "FULL-BODY SHOT from a distance, walking away happily or waving, lots of environment, cinematic.",
+}
 BOTTOM_SAFE = " Compose so faces and key action are in the upper 60% of the frame; the lower part may be counters, floor or soft blur."
 
 
@@ -48,10 +57,11 @@ def font(weight, size):
 
 # ---------- 사진 생성 ----------
 
-def generate_photo(key, scene, bottom_safe=True):
+def generate_photo(key, scene, bottom_safe=True, shot=""):
     with open(HERO["ref"], "rb") as f:
         ref = {"inlineData": {"mimeType": "image/png", "data": base64.b64encode(f.read()).decode()}}
-    prompt = f"{PHOTO_RULES}{BOTTOM_SAFE if bottom_safe else ''}\n\nScene: {scene}"
+    prompt = (f"{PHOTO_RULES}{BOTTOM_SAFE if bottom_safe else ''}\n\n"
+              f"Camera framing (follow strictly): {shot}\n\nScene: {scene}")
     body = {
         "contents": [{"parts": [ref, {"text": prompt}]}],
         "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "4:5"}},
@@ -126,10 +136,16 @@ def badge(draw, x, y, text, color, fnt):
     return x + tw + 32
 
 
-def overlay(img, box, fill, radius=36):
+def overlay(img, box, fill, radius=36, blur=14):
+    """배경이 비쳐 보이는 반투명 유리 카드: 카드 영역만 살짝 흐리게 + 반투명 흰색."""
+    img = img.convert("RGBA")
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(box, radius, fill=255)
+    if blur:
+        img = Image.composite(img.filter(ImageFilter.GaussianBlur(blur)), img, mask)
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(layer).rounded_rectangle(box, radius, fill=fill)
-    return Image.alpha_composite(img.convert("RGBA"), layer)
+    ImageDraw.Draw(layer).rounded_rectangle(box, radius, fill=fill, outline=(255, 255, 255, 170), width=2)
+    return Image.alpha_composite(img, layer)
 
 
 def footer(draw, ep_no, n, total):
@@ -174,7 +190,7 @@ def compose_dialogue(raw, s, panel, out, total):
         h = text_block(d, 0, h + 2, dl["ko"], f_ko, SUB, max_w, measure=True) + 22
     h += pad - 22
     top = H - 48 - h
-    img = overlay(img, (mx, top, W - mx, H - 48), (255, 255, 255, 238))
+    img = overlay(img, (mx, top, W - mx, H - 48), (255, 255, 255, 150))
     d = ImageDraw.Draw(img)
     footer(d, s["episode"], panel["cut"], total)
     y = top + pad
@@ -190,8 +206,7 @@ def compose_dialogue(raw, s, panel, out, total):
 
 
 def compose_summary(raw, s, out, total):
-    img = fit_cover(Image.open(raw)).filter(ImageFilter.GaussianBlur(3)).convert("RGBA")
-    img = Image.alpha_composite(img, Image.new("RGBA", (W, H), (0, 0, 0, 70)))
+    img = fit_cover(Image.open(raw)).convert("RGBA")
     mx, pad = 56, 52
     max_w = W - 2 * mx - 2 * pad
     meas = ImageDraw.Draw(img)
@@ -212,7 +227,7 @@ def compose_summary(raw, s, out, total):
 
     h = body(meas, 0, True) + 2 * pad
     top = max(110, (H - h) // 2)
-    img = overlay(img, (mx, top, W - mx, top + h), (255, 255, 255, 242), 44)
+    img = overlay(img, (mx, top, W - mx, top + h), (255, 255, 255, 165), 44, blur=10)
     d = ImageDraw.Draw(img)
     footer(d, s["episode"], total, total)
     body(d, top + pad, False)
@@ -238,7 +253,7 @@ def main():
     for n, scene, safe in jobs:
         raw = f"{ep_dir}/raw/cut{n}.png"
         if not compose_only and (force or not os.path.exists(raw)):
-            img, model, err = generate_photo(key, scene, safe)
+            img, model, err = generate_photo(key, scene, safe, SHOTS.get(n, ""))
             if not img:
                 report.append(f"- {n}장: ❌ {err}")
                 continue
