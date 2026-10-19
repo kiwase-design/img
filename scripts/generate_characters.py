@@ -1,4 +1,4 @@
-"""캐릭터 기준 설정화 생성.
+"""캐릭터 기준 설정화 생성 (유료 등급).
 
 series_bible.md 의 설정을 바탕으로 주인공·조연 설정화를 그려
 characters/ 폴더에 저장한다. 결과 요약은 checks/character_gen.md 에 기록.
