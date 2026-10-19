@@ -1,13 +1,13 @@
 """연재 자동화 봇 — GitHub Actions 에서 실행.
 
   python scripts/webtoon_bot.py generate   # (매일 12시) 다음 회차 생성 → 승인 요청 이슈
-  python scripts/webtoon_bot.py publish    # (매일 21시) 승인된 회차 게시
+  python scripts/webtoon_bot.py publish    # (매일 20:50) 승인된 회차 게시
   python scripts/webtoon_bot.py command    # 이슈 댓글 명령 처리
   python scripts/webtoon_bot.py refresh    # (매월) 인스타 토큰 갱신
 
 회차 상태 (episodes/epNNN/ 안의 파일로 표시):
   script.json + final/  → 승인 대기
-  APPROVED              → 승인됨 (21시 게시)
+  APPROVED              → 승인됨 (20:50 게시)
   published.json        → 게시 완료
   SKIPPED               → 건너뜀
 연재 on/off 는 config/state.json 의 enabled.
@@ -28,11 +28,12 @@ STATE = "config/state.json"
 KST = timezone(timedelta(hours=9))
 RAW = f"https://raw.githubusercontent.com/{REPO}"
 ALLOWED = {"OWNER", "MEMBER", "COLLABORATOR"}
+POST_HOUR, POST_MIN = 20, 50  # 매일 게시 시각 (KST)
 
 HELP = """**댓글 명령어**
 | 명령 | 동작 |
 |---|---|
-| `승인` | 오늘 밤 9시에 게시 |
+| `승인` | 오늘 저녁 8시 50분에 게시 |
 | `지금 게시` | 바로 게시 |
 | `그림 다시` | 같은 대본으로 그림만 다시 |
 | `다시` | 새 이야기로 처음부터 다시 |
@@ -205,11 +206,11 @@ def publish(only=None):
         print("게시할 승인 회차 없음")
         return
     if not only and os.environ.get("WAIT_UNTIL_9PM"):
-        # GitHub 예약 실행이 늦는 걸 대비해 일찍 시작하고, 정확히 21시까지 기다렸다가 게시
-        nine = now().replace(hour=21, minute=0, second=0, microsecond=0)
+        # GitHub 예약 실행이 늦는 걸 대비해 일찍 시작하고, 정확히 20:50까지 기다렸다가 게시
+        nine = now().replace(hour=POST_HOUR, minute=POST_MIN, second=0, microsecond=0)
         wait = (nine - now()).total_seconds()
         if 0 < wait < 3600:
-            print(f"21시까지 {int(wait)}초 대기")
+            print(f"{POST_HOUR}:{POST_MIN:02d}까지 {int(wait)}초 대기")
             import time
             time.sleep(wait)
     for d in targets:
@@ -252,7 +253,7 @@ def command():
         st["enabled"] = True
         save_state(st)
         git_push("연재 재개")
-        comment(n, "▶️ 연재를 다시 시작했어요. 매일 12시 생성 → 승인 → 21시 게시.")
+        comment(n, "▶️ 연재를 다시 시작했어요. 매일 12시 생성 → 승인 → 저녁 8시 50분 게시.")
         if not [d for d in episodes() if status(d) in ("pending", "approved", "draft")]:
             generate("재개하면서 바로 생성")
         return
@@ -275,12 +276,13 @@ def command():
         open(f"{d}/APPROVED", "w").write(now().isoformat())
         git_push(f"{d} 승인")
         t = now()
-        if t.hour < 21:
-            msg = "**오늘 밤 9시**에 게시돼요."
-        elif t.hour == 21 and t.minute < 30:
-            msg = "9시가 지나서 **잠시 후(21:33 전후)** 게시돼요. 바로 올리려면 `지금 게시`."
+        mins = t.hour * 60 + t.minute
+        if mins < POST_HOUR * 60 + POST_MIN:
+            msg = "**오늘 저녁 8시 50분**에 게시돼요."
+        elif mins < 21 * 60 + 20:
+            msg = "게시 시간이 지나서 **잠시 후(21:23 전후)** 게시돼요. 바로 올리려면 `지금 게시`."
         else:
-            msg = "오늘 게시 시간이 지나서 **내일 밤 9시**에 게시돼요. 바로 올리려면 `지금 게시`."
+            msg = "오늘 게시 시간이 지나서 **내일 저녁 8시 50분**에 게시돼요. 바로 올리려면 `지금 게시`."
         comment(n, "👍 승인됐어요. " + msg)
     elif text == "지금 게시":
         open(f"{d}/APPROVED", "w").write(now().isoformat())
@@ -335,4 +337,16 @@ def refresh():
 
 
 if __name__ == "__main__":
-    {"generate": generate, "publish": publish, "command": command, "refresh": refresh}[sys.argv[1]]()
+    action = sys.argv[1]
+    try:
+        {"generate": generate, "publish": publish, "command": command, "refresh": refresh}[action]()
+    except BaseException as e:
+        if isinstance(e, SystemExit) and e.code in (0, None):
+            raise
+        import traceback
+        tb = traceback.format_exc()[-2500:]
+        try:
+            comment(control_issue(), f"⚠️ 봇 `{action}` 실행 중 오류\n\n```\n{tb}\n```")
+        except Exception:
+            pass
+        raise
