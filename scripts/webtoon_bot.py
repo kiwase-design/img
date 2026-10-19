@@ -352,10 +352,23 @@ def refresh():
         print(f"토큰 갱신 완료 ({days}일 유효)")
 
 
+def rerender():
+    """config/trigger.json 의 episode 를 다시 렌더링 (raw 가 없는 컷만 새로 그림) 후 승인 이슈에 수정본 게시."""
+    d = json.load(open("config/trigger.json", encoding="utf-8"))["episode"].rstrip("/")
+    for p in glob.glob(f"{d}/final/*"):
+        os.remove(p)
+    render(d)
+    sha = git_push(f"{d} 수정본 렌더링")
+    issue = issue_of(d)
+    if issue:
+        comment(issue, "✏️ 수정본이에요. 괜찮으면 `승인`.\n\n" + preview_md(d, sha))
+
+
 if __name__ == "__main__":
     action = sys.argv[1]
     try:
-        {"generate": generate, "publish": publish, "command": command, "refresh": refresh}[action]()
+        {"generate": generate, "publish": publish, "command": command, "refresh": refresh,
+         "rerender": rerender}[action]()
     except BaseException as e:
         if isinstance(e, SystemExit) and e.code in (0, None):
             raise

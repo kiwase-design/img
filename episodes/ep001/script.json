@@ -21,7 +21,7 @@
         },
         {
           "speaker": "omokunui",
-          "text": "오사카는 먹으러 오는 나라 맞제?!",
+          "text": "오사카는 먹으러 오는 도시 맞제?!",
           "side": "right"
         }
       ]
@@ -73,7 +73,7 @@
         "omokunui",
         "badapyobum"
       ],
-      "scene": "Doodle of a canal with neon billboards reflecting in the water, a tourist cruise boat passing by. On the side, a vibrant traditional market stall with hanging seafood. Giwase points toward the boat.",
+      "scene": "Doodle of a canal at dusk lined with colorful glowing billboards drawn only as blank colored rectangles (no pictures, no logos, no letters), a tourist cruise boat passing by. On the right side, a lively traditional market stall with hanging fish and seafood. Giwase in the middle points toward the boat, Omokunui on the left bounces excitedly, Badapyobum leans lazily on Giwase.",
       "dialogues": [
         {
           "speaker": "giwase",
@@ -82,7 +82,7 @@
         },
         {
           "speaker": "omokunui",
-          "text": "달리는 아저씨 간판 앞에서 사진 찍어줘!",
+          "text": "나는 배 타면서 야경 볼래!",
           "side": "right"
         }
       ]
@@ -113,16 +113,11 @@
       "characters": [
         "giwase"
       ],
-      "scene": "A close-up doodle of Giwase looking straight at the reader with an intense, determined ENTJ expression, pointing his finger forward. A small speech bubble above him.",
+      "scene": "A close-up doodle of Giwase looking straight at the reader with an intense, determined ENTJ expression, pointing his wing forward at the viewer. Plain white paper background.",
       "dialogues": [
         {
           "speaker": "giwase",
-          "text": "명소 패스 챙기고 짧은 거리는 택시 타라!",
-          "side": "center"
-        },
-        {
-          "speaker": "giwase",
-          "text": "유익했제? 퍼뜩 좋아요 누르고 저장해라!",
+          "text": "명소 패스 챙기고 짧은 거리는 택시 타라! 유익했제? 퍼뜩 좋아요 누르고 저장해라!",
           "side": "center"
         }
       ]

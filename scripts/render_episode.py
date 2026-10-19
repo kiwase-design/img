@@ -39,7 +39,8 @@ STYLE = (
     "(no characters, no objects) because speech bubbles will be added there later. "
     "One full-bleed scene: no panel border, no frame lines, no inner panels. "
     "Absolutely no text, no letters, no speech bubbles, no captions, no watermark, "
-    "and no real brand names, logos or trademarks on any object."
+    "and no real brand names, logos, trademarks, mascots or famous characters on any object. "
+    "Any signboards or billboards must be blank colored shapes."
 )
 
 
@@ -187,7 +188,13 @@ def compose(raw_path, panel, out_path, ep_title, ep_no):
     draw = ImageDraw.Draw(img)
     fnt = font(48)
     top = 70
+    merged = []  # 같은 인물이 연달아 말하면 말풍선 하나로
     for dl in panel["dialogues"]:
+        if merged and merged[-1]["speaker"] == dl["speaker"]:
+            merged[-1] = {**merged[-1], "text": merged[-1]["text"] + " " + dl["text"]}
+        else:
+            merged.append(dict(dl))
+    for dl in merged:
         bottom = draw_bubble(draw, dl["text"], dl.get("side", "center"), top, fnt)
         top = bottom + 14
 
