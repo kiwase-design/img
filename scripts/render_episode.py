@@ -202,7 +202,8 @@ def fetch_photo(key, query, avoid, context=""):
         hits.sort(key=lambda h: (relevance(h, words), h.get("likes", 0)), reverse=True)
         cands = hits[:8]
         random.shuffle(cands)  # '그림 다시' 때 다른 사진이 뽑히게
-        best = gemini_pick(cands, context, q)
+        # Gemini 사진 검사는 기본 꺼짐: Pixabay가 미리보기 다운로드를 자주 막아서 오히려 실패가 늘어남
+        best = gemini_pick(cands, context, q) if SERIES.get("photo_check") else None
         if best == -1:
             continue  # 쓸 만한 게 없음 → 다음 검색어
         h = cands[best] if best is not None and 0 <= best < len(cands) else cands[0]
@@ -393,7 +394,7 @@ def main():
                 report.append(f"- {n}장: ❌ '{query}' 사진 없음")
                 continue
             open(raw, "wb").write(img)
-            time.sleep(3)  # 연속 요청 완화
+            time.sleep(8)  # 연속 다운로드 완화 (Pixabay 429 방지)
             credits[str(n)] = cred
             avoid.add(cred["id"])
             report.append(f"- {n}장: ✅ 사진 ({cred['query']} · {cred['user']} · {cred['picked_by']})")
