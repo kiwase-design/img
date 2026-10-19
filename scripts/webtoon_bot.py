@@ -366,11 +366,28 @@ def rerender():
         comment(issue, "✏️ 수정본이에요. 괜찮으면 `승인`.\n\n" + preview_md(d, sha))
 
 
+def dryrun():
+    """게시·이슈 없이 다음 편 대본+사진을 checks/dryrun 에 만들어 본다 (테스트용)."""
+    d = "checks/dryrun/ep099"
+    shutil.rmtree("checks/dryrun", ignore_errors=True)
+    sh("python", "scripts/write_episode.py", d)
+    sh("python", "scripts/render_episode.py", d)
+    git_push_paths(["checks"], "드라이런 결과")
+
+
+def git_push_paths(paths, msg):
+    sh("git", "add", "-A", *paths)
+    if subprocess.run(["git", "diff", "--cached", "--quiet"]).returncode != 0:
+        sh("git", "commit", "-q", "-m", f"{msg} [skip ci]")
+        sh("git", "pull", "-q", "--rebase")
+        sh("git", "push", "-q")
+
+
 if __name__ == "__main__":
     action = sys.argv[1]
     try:
         {"generate": generate, "publish": publish, "command": command, "refresh": refresh,
-         "rerender": rerender}[action]()
+         "rerender": rerender, "dryrun": dryrun}[action]()
     except BaseException as e:
         if isinstance(e, SystemExit) and e.code in (0, None):
             raise
