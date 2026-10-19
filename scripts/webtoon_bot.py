@@ -201,6 +201,17 @@ def publish(only=None):
         print("연재 중단 상태 — 게시하지 않음")
         return
     targets = [only] if only else [d for d in episodes() if status(d) == "approved"][:1]
+    if not only and not targets:
+        print("게시할 승인 회차 없음")
+        return
+    if not only and os.environ.get("WAIT_UNTIL_9PM"):
+        # GitHub 예약 실행이 늦는 걸 대비해 일찍 시작하고, 정확히 21시까지 기다렸다가 게시
+        nine = now().replace(hour=21, minute=0, second=0, microsecond=0)
+        wait = (nine - now()).total_seconds()
+        if 0 < wait < 3600:
+            print(f"21시까지 {int(wait)}초 대기")
+            import time
+            time.sleep(wait)
     for d in targets:
         from PIL import Image
         for p in sorted(glob.glob(f"{d}/final/*.png")):

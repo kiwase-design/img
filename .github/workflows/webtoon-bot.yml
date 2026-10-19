@@ -2,9 +2,14 @@ name: 연재 봇
 
 on:
   schedule:
-    - cron: "0 3 * * *"    # 매일 12:00 KST — 다음 회차 생성 + 승인 요청
-    - cron: "0 12 * * *"   # 매일 21:00 KST — 승인된 회차 게시
-    - cron: "0 0 1 * *"    # 매월 1일 — 인스타 토큰 갱신
+    # GitHub 예약 실행은 정각에 늦거나 빠질 수 있어서 여러 번 시도한다 (중복 실행돼도 안전).
+    - cron: "7 3 * * *"    # 12:07 KST — 다음 회차 생성
+    - cron: "37 3 * * *"   # 12:37 KST — 생성 재시도 (이미 있으면 건너뜀)
+    - cron: "23 11 * * *"  # 20:23 KST — 게시 준비, 21:00까지 기다렸다 게시
+    - cron: "41 11 * * *"  # 20:41 KST — 위 실행이 빠졌을 때 대비 (21:00까지 대기)
+    - cron: "13 12 * * *"  # 21:13 KST — 그래도 안 올라갔으면 바로 게시
+    - cron: "33 12 * * *"  # 21:33 KST — 마지막 재시도
+    - cron: "17 0 1 * *"   # 매월 1일 — 인스타 토큰 갱신
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -53,9 +58,9 @@ jobs:
           case "${{ github.event_name }}" in
             schedule)
               case "${{ github.event.schedule }}" in
-                "0 3 * * *")  a=generate ;;
-                "0 12 * * *") a=publish ;;
-                *)            a=refresh ;;
+                "7 3 * * *"|"37 3 * * *") a=generate ;;
+                "17 0 1 * *")             a=refresh ;;
+                *)                        a=publish ;;
               esac ;;
             issue_comment)     a=command ;;
             workflow_dispatch) a="${{ github.event.inputs.action }}" ;;
@@ -70,4 +75,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          WAIT_UNTIL_9PM: ${{ github.event_name == 'schedule' && '1' || '' }}
         run: python scripts/webtoon_bot.py ${{ steps.act.outputs.action }}
