@@ -1,7 +1,8 @@
 """회차 렌더링: 컷 그림 생성(Gemini) → 말풍선·대사 합성(Pillow).
 
 사용법:
-  python scripts/render_episode.py episodes/ep001            # 그림 생성 + 합성
+  python scripts/render_episode.py episodes/ep001            # 없는 컷만 그림 생성 + 전체 합성
+  python scripts/render_episode.py episodes/ep001 --force    # 모든 컷 다시 그림
   python scripts/render_episode.py episodes/ep001 --compose  # 합성만 (raw 그림 재사용)
 
 산출물:
@@ -40,8 +41,10 @@ STYLE = (
     "(same colors, face, outfit, proportions). "
     "IMPORTANT: keep the top 28% of the image as calm, plain, empty background "
     "(no characters, no objects) because speech bubbles will be added there later. "
-    "Absolutely no text, no letters, no speech bubbles, no captions, no panel borders, "
-    "no watermark in the image."
+    "The illustration must fill the ENTIRE frame edge to edge as one full-bleed scene: "
+    "no panel border, no frame lines, no inner panels, no blank bands. "
+    "Absolutely no text, no letters, no speech bubbles, no captions, no watermark, "
+    "and no real brand names, logos or trademarks on any object."
 )
 
 
@@ -195,6 +198,7 @@ def compose(raw_path, panel, out_path, ep_title, ep_no):
 def main():
     ep_dir = sys.argv[1].rstrip("/")
     compose_only = "--compose" in sys.argv
+    force = "--force" in sys.argv  # 기존 raw 그림이 있어도 다시 그림
     script = json.load(open(f"{ep_dir}/script.json", encoding="utf-8"))
     os.makedirs(f"{ep_dir}/raw", exist_ok=True)
     os.makedirs(f"{ep_dir}/final", exist_ok=True)
@@ -205,7 +209,7 @@ def main():
     for panel in script["panels"]:
         n = panel["cut"]
         raw = f"{ep_dir}/raw/cut{n}.png"
-        if not compose_only:
+        if not compose_only and (force or not os.path.exists(raw)):
             if not key:
                 report.append("- ❌ GEMINI_API_KEY 없음")
                 break
