@@ -1,0 +1,35 @@
+name: Instagram 토큰 점검
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/check-instagram.yml"
+      - "scripts/check_instagram.py"
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 토큰 점검 (게시하지 않음)
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+        run: python scripts/check_instagram.py
+
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add checks/instagram_check.md
+          git diff --cached --quiet || git commit -m "Instagram 점검 결과 [skip ci]"
+          git pull --rebase
+          git push
