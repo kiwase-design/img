@@ -54,7 +54,7 @@ def sh(*cmd):
 
 
 def git_push(msg):
-    sh("git", "add", "-A", "episodes", "config")
+    sh("git", "add", "-A", "episodes", "config", "checks")
     if subprocess.run(["git", "diff", "--cached", "--quiet"]).returncode == 0:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     sh("git", "commit", "-q", "-m", f"{msg} [skip ci]")
@@ -241,10 +241,17 @@ def publish(only=None):
 def command():
     ev = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8"))
     c, issue = ev["comment"], ev["issue"]
-    if c["author_association"] not in ALLOWED or c["user"]["type"] == "Bot":
-        return
     text = re.sub(r"\s+", " ", c["body"]).strip()
     n = issue["number"]
+    os.makedirs("checks", exist_ok=True)
+    with open("checks/command_log.md", "a", encoding="utf-8") as f:  # 진단용 기록
+        f.write(f"- {now():%m-%d %H:%M} #{n} {c['user']['login']} [{c['author_association']}] "
+                f"'{text[:30]}' ep={ep_from_issue(n)} status={status(ep_from_issue(n)) if ep_from_issue(n) else '-'}\n")
+    if c["user"]["type"] == "Bot":
+        return
+    if c["author_association"] not in ALLOWED:
+        comment(n, f"권한 확인 실패({c['author_association']})로 명령을 실행하지 않았어요.")
+        return
     st = load_state()
 
     if text in ("중단", "멈춤", "정지"):
@@ -366,6 +373,17 @@ def rerender():
         comment(issue, "✏️ 수정본이에요. 괜찮으면 `승인`.\n\n" + preview_md(d, sha))
 
 
+def publish_now():
+    """config/trigger.json 의 episode 를 승인 처리하고 바로 게시."""
+    d = json.load(open("config/trigger.json", encoding="utf-8"))["episode"].rstrip("/")
+    if status(d) == "published":
+        print("이미 게시됨")
+        return
+    open(f"{d}/APPROVED", "w").write(now().isoformat())
+    git_push(f"{d} 승인")
+    publish(only=d)
+
+
 def dryrun():
     """게시·이슈 없이 다음 편 대본+사진을 checks/dryrun 에 만들어 본다 (테스트용)."""
     d = "checks/dryrun/ep099"
@@ -387,7 +405,7 @@ if __name__ == "__main__":
     action = sys.argv[1]
     try:
         {"generate": generate, "publish": publish, "command": command, "refresh": refresh,
-         "rerender": rerender, "dryrun": dryrun}[action]()
+         "rerender": rerender, "dryrun": dryrun, "publish_now": publish_now}[action]()
     except BaseException as e:
         if isinstance(e, SystemExit) and e.code in (0, None):
             raise
