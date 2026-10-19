@@ -1,0 +1,78 @@
+name: 인스타그램 게시
+
+# 회차 폴더에 PUBLISH 파일을 올리면 그 회차를 게시한다.
+on:
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: "회차 폴더 (예: episodes/ep001)"
+        required: true
+  push:
+    paths:
+      - "episodes/*/PUBLISH"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 게시할 회차 찾기
+        id: ep
+        run: |
+          if [ -n "${{ github.event.inputs.episode }}" ]; then
+            echo "dirs=${{ github.event.inputs.episode }}" >> "$GITHUB_OUTPUT"
+          else
+            dirs=$(git diff --name-only HEAD~1 HEAD -- 'episodes/*/PUBLISH' | xargs -r -n1 dirname | sort -u | tr '\n' ' ')
+            echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: PNG → JPG 변환 후 커밋 (인스타는 JPG만 받음)
+        id: jpg
+        run: |
+          pip install -q pillow
+          for d in ${{ steps.ep.outputs.dirs }}; do
+            python -c "
+          import glob, os
+          from PIL import Image
+          for p in sorted(glob.glob('$d/final/*.png')):
+              j = p[:-4] + '.jpg'
+              if not os.path.exists(j):
+                  Image.open(p).convert('RGB').save(j, quality=92)
+          "
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add episodes
+          git diff --cached --quiet || git commit -m "게시용 JPG 생성 [skip ci]"
+          git pull --rebase && git push
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: 인스타그램 게시
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+        run: |
+          sleep 5
+          for d in ${{ steps.ep.outputs.dirs }}; do
+            python scripts/publish_instagram.py "$d" "${{ steps.jpg.outputs.sha }}"
+          done
+
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git add episodes
+          git diff --cached --quiet || git commit -m "인스타그램 게시 결과 [skip ci]"
+          git pull --rebase && git push
