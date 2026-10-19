@@ -70,7 +70,7 @@ def main():
             msg = data.get("error", {}).get("message", "")
             lines.append(f"- 텍스트 생성 ({text_model}): ❌ HTTP {status} — {msg}")
 
-    # 이미지는 이제 Pixabay를 쓰므로 이미지 모델은 점검하지 않음 (비용 방지)
+    # (재점검) 이미지는 이제 Pixabay를 쓰므로 이미지 모델은 점검하지 않음 (비용 방지)
     write(lines)
 
 
