@@ -24,6 +24,9 @@ SHEET = (
 )
 
 
+SHEET = SERIES.get("sheet_prompt", SHEET)
+
+
 def inline(path):
     mime = mimetypes.guess_type(path)[0] or "image/png"
     with open(path, "rb") as f:
