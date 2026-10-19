@@ -52,14 +52,13 @@ def main():
     lines.append(f"- 이미지 모델: {', '.join(image_models) if image_models else '없음'}")
 
     # 2) 짧은 텍스트 생성 (실제 호출 가능 여부)
-    text_model = next(
-        (m for m in models if re.fullmatch(r"gemini-\d+(\.\d+)?-flash", m)),
-        None,
-    )
+    flashes = sorted((m for m in models if re.fullmatch(r"gemini-\d+(\.\d+)?-flash", m)),
+                     key=lambda m: float(m.split("-")[1]), reverse=True)
+    text_model = flashes[0] if flashes else None
     if text_model:
         status, data = call(
             "POST", f"models/{text_model}:generateContent", key,
-            {"contents": [{"parts": [{"text": "냥대리라는 고양이 회사원에게 한 줄 인사를 해줘."}]}]},
+            {"contents": [{"parts": [{"text": "여행 영어 한 문장만 알려줘."}]}]},
         )
         if status == 200:
             try:

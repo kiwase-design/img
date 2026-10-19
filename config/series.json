@@ -3,17 +3,12 @@
   "short_title": "하루 한 장면 여행영어",
   "format": "travel-english",
   "slides": 6,
-  "style": "Photorealistic travel lifestyle photograph, shot on a full-frame camera with a 35mm lens, natural soft light, shallow depth of field, true-to-life skin texture, candid editorial feel like a high-quality travel vlog still. Vertical 4:5 composition.",
   "characters": {
-    "yuna": {
-      "name": "유나",
-      "role": "주인공, 20대 초반 한국인 여행자",
-      "desc": "Yuna, a FICTIONAL young Korean woman in her early 20s with a K-pop idol-like look: small oval face, clear bright skin, large gentle double-lidded eyes, natural straight eyebrows, light coral lips, long dark brown hair tied up in a high ponytail with soft see-through bangs, slim build, about 163 cm. Outfit: a short casual A-line mini dress in soft sky blue with short sleeves (above-the-knee, tasteful everyday travel style), white sneakers, small black crossbody bag. She must NOT resemble any real celebrity.",
-      "ref": "characters/yuna.png",
-      "face_ref": "characters/yuna_face_v1.png"
+    "me": {
+      "name": "나",
+      "role": "한국인 여행자"
     }
   },
-  "sheet_prompt": "Reference photo set of ONE fictional person for keeping her face consistent across photos: left half = a front-facing head-and-shoulders portrait with a soft smile, right half = a full-body standing shot in the outfit. Plain light gray studio background, soft even lighting, photorealistic. No text, no logos.",
   "hashtags": [
     "#여행영어",
     "#영어회화",
@@ -22,5 +17,6 @@
     "#생활영어",
     "#하루한장면여행영어"
   ],
-  "ai_notice": "※ 이미지는 AI로 생성되었으며 등장인물은 실존 인물이 아닙니다."
+  "ai_notice": "",
+  "photo_source": "pixabay"
 }

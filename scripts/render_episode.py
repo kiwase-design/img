@@ -1,95 +1,82 @@
-"""여행영어 한 편 렌더링: 실사 사진 생성(Gemini) → 자막 카드 합성(Pillow).
+"""여행영어 한 편 렌더링: Pixabay 무료 사진 → 반투명 자막 카드 합성(Pillow).
 
 사용법:
-  python scripts/render_episode.py episodes/ep001            # 없는 사진만 생성 + 전체 합성
-  python scripts/render_episode.py episodes/ep001 --force    # 모든 사진 다시 생성
+  python scripts/render_episode.py episodes/ep001            # 없는 사진만 받아오기 + 전체 합성
+  python scripts/render_episode.py episodes/ep001 --force    # 사진 전부 새로 고르기
   python scripts/render_episode.py episodes/ep001 --compose  # 합성만
 
 산출물:
-  <ep>/raw/cutN.png   생성된 원본 사진 (1=표지, 2~5=대화, 6=정리)
-  <ep>/final/NN.png   인스타 업로드용 1080x1350
+  <ep>/raw/cutN.jpg     Pixabay 원본 사진 (1=표지, 2~5=대화, 6=정리)
+  <ep>/credits.json     장별 사진 출처 (작가, 페이지)
+  <ep>/final/NN.png     인스타 업로드용 1080x1350
 """
-import base64
+import glob
 import json
 import os
+import random
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone, timedelta
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-BASE = "https://generativelanguage.googleapis.com/v1beta"
-MODELS = ["gemini-3-pro-image", "gemini-3.1-flash-image"]
 W, H = 1080, 1350
 NOTO = "/usr/share/fonts/opentype/noto/NotoSansCJK-{}.ttc"
 SERIES = json.load(open("config/series.json", encoding="utf-8"))
 HERO_ID = next(iter(SERIES["characters"]))
 HERO = SERIES["characters"][HERO_ID]
+PIXABAY = "https://pixabay.com/api/"
 
-ACCENT = (255, 94, 98)      # 주인공 라벨 (코랄)
-STAFF = (70, 110, 160)      # 상대방 라벨 (블루)
+ACCENT = (255, 94, 98)      # 여행자(나) 라벨
+STAFF = (70, 110, 160)      # 상대방 라벨
 INK = (25, 25, 30)
 SUB = (95, 95, 105)
-
-PHOTO_RULES = (
-    f"{SERIES['style']} "
-    f"The young woman in the photo is {HERO['name']}: she must look EXACTLY like the woman in the reference image "
-    "(same face, same hair, same outfit). She is a fictional person. "
-    "Absolutely no readable text, letters, numbers, signs, screens with text, logos, airline or brand names anywhere. "
-    "No watermark, no captions, no speech bubbles."
-)
-# 장마다 다른 샷으로 찍어 사진이 비슷해 보이지 않게
-SHOTS = {
-    1: "MEDIUM SHOT (waist up), she looks into the camera with a bright smile, the place clearly visible behind her.",
-    2: "WIDE FULL SHOT: her whole body small-to-medium in frame, the whole place and the other person visible, establishing shot.",
-    3: "CLOSE-UP: tight on her face and shoulders (or on hands doing the action), strong background blur, expressive emotion.",
-    4: "OVER-THE-SHOULDER SHOT from behind the other person, she faces the camera in the mid-ground.",
-    5: "BUST SHOT from a low side angle (chest up), both people partly in frame, natural candid moment.",
-    6: "FULL-BODY SHOT from a distance, walking away happily or waving, lots of environment, cinematic.",
-}
-BOTTOM_SAFE = " Compose so faces and key action are in the upper 60% of the frame; the lower part may be counters, floor or soft blur."
 
 
 def font(weight, size):
     return ImageFont.truetype(NOTO.format(weight), size, index=1)
 
 
-# ---------- 사진 생성 ----------
+# ---------- 사진 가져오기 ----------
 
-def generate_photo(key, scene, bottom_safe=True, shot=""):
-    with open(HERO["ref"], "rb") as f:
-        ref = {"inlineData": {"mimeType": "image/png", "data": base64.b64encode(f.read()).decode()}}
-    prompt = (f"{PHOTO_RULES}{BOTTOM_SAFE if bottom_safe else ''}\n\n"
-              f"Camera framing (follow strictly): {shot}\n\nScene: {scene}")
-    body = {
-        "contents": [{"parts": [ref, {"text": prompt}]}],
-        "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "4:5"}},
-    }
-    errors = []
-    for model in MODELS:
-        req = urllib.request.Request(
-            f"{BASE}/models/{model}:generateContent", method="POST",
-            headers={"x-goog-api-key": key, "Content-Type": "application/json"},
-            data=json.dumps(body).encode(),
-        )
+def used_photo_ids():
+    """이미 쓴 사진 id — 편끼리 같은 사진이 반복되지 않게."""
+    ids = set()
+    for p in glob.glob("episodes/ep*/credits.json"):
         try:
-            with urllib.request.urlopen(req, timeout=300) as r:
-                data = json.loads(r.read())
-        except urllib.error.HTTPError as e:
-            try:
-                msg = json.loads(e.read()).get("error", {}).get("message", "")[:300]
-            except Exception:
-                msg = ""
-            errors.append(f"{model}: HTTP {e.code} {msg}")
+            ids |= {c["id"] for c in json.load(open(p, encoding="utf-8")).values()}
+        except Exception:
+            pass
+    return ids
+
+
+def search_pixabay(key, query, orientation):
+    params = urllib.parse.urlencode({
+        "key": key, "q": query[:100], "image_type": "photo", "orientation": orientation,
+        "safesearch": "true", "per_page": 40, "min_width": 1000, "order": "popular",
+    })
+    with urllib.request.urlopen(f"{PIXABAY}?{params}", timeout=60) as r:
+        return json.loads(r.read()).get("hits", [])
+
+
+def fetch_photo(key, query, avoid):
+    """검색어로 사진 하나를 골라 (바이트, 출처) 반환. 결과가 없으면 검색어를 점점 넓힌다."""
+    words = query.split()
+    tries = [(query, "vertical"), (query, "all")]
+    if len(words) > 2:
+        tries += [(" ".join(words[:2]), "vertical"), (" ".join(words[:2]), "all")]
+    tries += [(words[0] + " travel", "all"), ("travel", "vertical")]
+    for q, ori in tries:
+        hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
+        if not hits:
             continue
-        for cand in data.get("candidates", []):
-            for part in cand.get("content", {}).get("parts", []):
-                inl = part.get("inlineData") or part.get("inline_data")
-                if inl and inl.get("data"):
-                    return base64.b64decode(inl["data"]), model, None
-        errors.append(f"{model}: 이미지 없음")
-    return None, None, " / ".join(errors)
+        h = random.choice(hits[:8])  # 상위 결과 중 무작위 → '사진 다시' 때 다른 사진
+        with urllib.request.urlopen(h["largeImageURL"], timeout=60) as r:
+            data = r.read()
+        return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q}
+    return None, None
 
 
 # ---------- 합성 도구 ----------
@@ -247,22 +234,31 @@ def main():
     s = json.load(open(f"{ep_dir}/script.json", encoding="utf-8"))
     os.makedirs(f"{ep_dir}/raw", exist_ok=True)
     os.makedirs(f"{ep_dir}/final", exist_ok=True)
-    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    key = os.environ.get("PIXABAY_API_KEY", "").strip()
     kst = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M KST")
     report = [f"# #{s['episode']} 「{s['title']}」 렌더링 결과", "", f"- 실행 시각: {kst}"]
+    cpath = f"{ep_dir}/credits.json"
+    credits = json.load(open(cpath, encoding="utf-8")) if os.path.exists(cpath) else {}
+    avoid = used_photo_ids()
 
     total = len(s["panels"]) + 2
-    jobs = [(1, s["cover_scene"], False)] + [(p["cut"], p["scene"], True) for p in s["panels"]] \
-        + [(total, s["summary_scene"], False)]
-    for n, scene, safe in jobs:
-        raw = f"{ep_dir}/raw/cut{n}.png"
+    jobs = [(1, s["cover_query"])] + [(p["cut"], p["photo_query"]) for p in s["panels"]] \
+        + [(total, s["summary_query"])]
+    for n, query in jobs:
+        raw = f"{ep_dir}/raw/cut{n}.jpg"
         if not compose_only and (force or not os.path.exists(raw)):
-            img, model, err = generate_photo(key, scene, safe, SHOTS.get(n, ""))
+            try:
+                img, cred = fetch_photo(key, query, avoid)
+            except urllib.error.HTTPError as e:
+                img, cred = None, None
+                report.append(f"- {n}장: ❌ Pixabay HTTP {e.code}")
             if not img:
-                report.append(f"- {n}장: ❌ {err}")
+                report.append(f"- {n}장: ❌ '{query}' 사진 없음")
                 continue
             open(raw, "wb").write(img)
-            report.append(f"- {n}장: ✅ 사진 생성 ({model})")
+            credits[str(n)] = cred
+            avoid.add(cred["id"])
+            report.append(f"- {n}장: ✅ 사진 ({cred['query']} · {cred['user']})")
         if not os.path.exists(raw):
             continue
         out = f"{ep_dir}/final/{n:02d}.png"
@@ -274,7 +270,10 @@ def main():
             compose_dialogue(raw, s, next(p for p in s["panels"] if p["cut"] == n), out, total)
         report.append(f"- {n}장: ✅ 합성")
 
-    open(f"{ep_dir}/report.md", "w", encoding="utf-8").write("\n".join(report) + "\n")
+    with open(cpath, "w", encoding="utf-8") as f:
+        json.dump(credits, f, ensure_ascii=False, indent=2)
+    with open(f"{ep_dir}/report.md", "w", encoding="utf-8") as f:
+        f.write("\n".join(report) + "\n")
     print("\n".join(report))
 
 

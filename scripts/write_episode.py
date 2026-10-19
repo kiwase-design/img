@@ -70,11 +70,11 @@ def choose_topic(ep_dir):
 
 
 def validate(s):
-    for k in ("title", "headline", "sub", "cover_scene", "summary_scene", "tip", "caption"):
+    for k in ("title", "headline", "sub", "cover_query", "summary_query", "tip", "caption"):
         assert isinstance(s.get(k), str) and s[k].strip(), k
     assert len(s["panels"]) == 4
     for p in s["panels"]:
-        assert isinstance(p["scene"], str) and len(p["scene"]) > 30
+        assert isinstance(p["photo_query"], str) and 2 <= len(p["photo_query"].split()) <= 6
         assert len(p["dialogues"]) == 2
         for d in p["dialogues"]:
             assert d["speaker"] in ("staff", HERO_ID)
@@ -94,7 +94,7 @@ def main():
 
     prompt = f"""You are an experienced English teacher who writes viral Instagram carousels teaching Korean travelers practical English.
 Topic (situation): {topic}
-Main character: {HERO['name']} ({HERO_ID}), a Korean traveler in her early 20s. The other person is local staff or a local ("staff").
+Speakers: the traveler ("{HERO_ID}", a Korean tourist) and the other person ("staff": local staff or a local).
 
 Write ONE short realistic conversation for this situation as 4 exchanges. Each exchange = 2 lines (usually staff then {HERO_ID}, or the reverse when she starts).
 Rules for the English:
@@ -105,8 +105,10 @@ Rules for the English:
 Korean ("ko"): natural Korean translation a Korean would actually say, not word-for-word (avoid stiff words like '완벽합니다').
 key_phrases: 3–5 items, mostly lines the TRAVELER says (ready to copy), plus at most one staff question she must understand.
 
-Images: every exchange gets one photo. Write "scene" in English as a photo description: location, who is where, actions, expressions.
-{HERO['name']} is always in the photo. Staff appearance should fit the place (mixed ethnicities). No readable text, signs, screens, logos or uniforms with brands.
+Photos come from a free stock photo site (Pixabay). For each slide write a SHORT English search query (2–4 common words)
+that will find a good real photo for it. Prefer places and objects over faces (e.g. "airport check in", "suitcase luggage",
+"passport boarding pass", "hotel reception desk", "coffee cup cafe"). Make the 6 queries different from each other:
+mix wide place shots and close-up object shots.
 
 Return JSON only:
 {{
@@ -114,15 +116,15 @@ Return JSON only:
   "other_label": "Korean label for the other person, 2–3 chars: 직원 / 현지인 / 기사님 / 의사 / 약사 etc.",
   "headline": "Korean cover headline, max 10 chars (e.g. 공항 체크인)",
   "sub": "Korean cover subline, max 16 chars, catchy (e.g. 이 네 마디면 끝!)",
-  "cover_scene": "English photo description for the cover: {HERO['name']} at this place, looking at the camera with a friendly smile",
+  "cover_query": "2–4 word search query for an attractive wide photo of the place",
   "panels": [
-    {{"scene": "English photo description",
+    {{"photo_query": "2–4 word search query",
       "dialogues": [{{"speaker": "staff", "en": "...", "ko": "..."}}, {{"speaker": "{HERO_ID}", "en": "...", "ko": "..."}}]}}
   ],
   "key_phrases": [{{"en": "most useful phrase", "ko": "해석"}}],
   "tip": "One practical Korean tip for this situation, max 40 chars",
-  "summary_scene": "English photo description for the last slide: {HERO['name']} happy after finishing the situation",
-  "caption": "Korean Instagram caption: line 1 '{SERIES['title']} #{ep_no} | <title>', blank line, 2 lines hook, blank line, the key phrases as '✔️ English — 한국어' lines, blank line, '저장해두고 여행 갈 때 꺼내 보세요! 💾', blank line, '{SERIES['ai_notice']}', blank line, hashtags: {tags} plus 3 topic hashtags"
+  "summary_query": "2–4 word search query for a calm, simple background photo (e.g. 'airplane window sky')",
+  "caption": "Korean Instagram caption: line 1 '{SERIES['title']} #{ep_no} | <title>', blank line, 2 lines hook, blank line, the key phrases as '✔️ English — 한국어' lines, blank line, '저장해두고 여행 갈 때 꺼내 보세요! 💾', blank line, hashtags: {tags} plus 3 topic hashtags"
 }}"""
 
     errors = []

@@ -62,6 +62,13 @@ def main():
     if not 2 <= len(images) <= 10:
         raise SystemExit(f"캐러셀 이미지는 2~10장이어야 함 (현재 {len(images)}장)")
     urls = [f"https://raw.githubusercontent.com/{REPO}/{sha}/{p}" for p in images]
+    caption = script["caption"]
+    if os.path.exists(f"{ep_dir}/credits.json"):  # 무료 사진 출처 표기 (Pixabay 이용 조건)
+        users = []
+        for c in json.load(open(f"{ep_dir}/credits.json", encoding="utf-8")).values():
+            if c["user"] not in users:
+                users.append(c["user"])
+        caption += "\n\n📷 Photos: Pixabay (" + ", ".join(users) + ")"
 
     try:
         user_id = call("GET", "me", token, {"fields": "user_id"})["user_id"]
@@ -71,7 +78,7 @@ def main():
             wait_ready(c["id"], token, f"{i}번 이미지")
             children.append(c["id"])
         carousel = call("POST", f"{user_id}/media", token, {
-            "media_type": "CAROUSEL", "children": ",".join(children), "caption": script["caption"],
+            "media_type": "CAROUSEL", "children": ",".join(children), "caption": caption,
         })
         wait_ready(carousel["id"], token, "캐러셀")
         post = call("POST", f"{user_id}/media_publish", token, {"creation_id": carousel["id"]})
