@@ -1,0 +1,109 @@
+{
+  "episode": 99,
+  "topic": "공항 보안검색대 통과하기",
+  "title": "공항 보안검색대 영어",
+  "other_label": "직원",
+  "headline": "보안검색대 영어",
+  "sub": "당황하지 않는 필수 표현",
+  "cover_query": "airport security terminal",
+  "panels": [
+    {
+      "photo_query": "luggage tray airport",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Please take out your laptop and place it in a separate tray.",
+          "ko": "노트북은 꺼내서 바구니에 따로 담아주세요."
+        },
+        {
+          "speaker": "me",
+          "en": "Sure. Do I need to take off my shoes, too?",
+          "ko": "네. 신발도 벗어야 하나요?"
+        }
+      ],
+      "cut": 2,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "leather belt shoes",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Yes, please remove your shoes, belt, and jacket.",
+          "ko": "네, 신발이랑 벨트, 겉옷도 벗어주세요."
+        },
+        {
+          "speaker": "me",
+          "en": "Okay. Do liquids have to come out as well?",
+          "ko": "알겠습니다. 액체류도 꺼내야 하나요?"
+        }
+      ],
+      "cut": 3,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "cosmetics bottle pouch",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Yes, liquids must be under 100ml in a clear bag.",
+          "ko": "네, 100ml 이하 액체류는 투명 지퍼백에 담아 꺼내주세요."
+        },
+        {
+          "speaker": "me",
+          "en": "Understood. Everything is packed right here.",
+          "ko": "알겠어요. 여기 다 정리해 뒀습니다."
+        }
+      ],
+      "cut": 4,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "metal detector scanner",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Please step through the scanner and raise your arms.",
+          "ko": "스캐너 안으로 들어오셔서 양팔을 들어주세요."
+        },
+        {
+          "speaker": "me",
+          "en": "Like this? Thanks for your help!",
+          "ko": "이렇게요? 도와주셔서 감사합니다!"
+        }
+      ],
+      "cut": 5,
+      "characters": [
+        "me"
+      ]
+    }
+  ],
+  "key_phrases": [
+    {
+      "en": "Do I need to take off my shoes, too?",
+      "ko": "신발도 벗어야 하나요?"
+    },
+    {
+      "en": "Do liquids have to come out as well?",
+      "ko": "액체류도 꺼내야 하나요?"
+    },
+    {
+      "en": "Please take out your laptop.",
+      "ko": "노트북을 꺼내주세요."
+    },
+    {
+      "en": "Like this?",
+      "ko": "이렇게 하면 되나요?"
+    }
+  ],
+  "tip": "노트북과 액체류는 가방 맨 위에 두면 빠르게 통과해요.",
+  "summary_query": "airplane window clouds",
+  "caption": "하루 한 장면 여행영어 #99 | 공항 보안검색대 영어\n\n공항에서 가장 긴장되는 보안검색대 순간!\n줄 서기 전에 이 표현들만 미리 알아두세요.\n\n✔️ Do I need to take off my shoes, too? — 신발도 벗어야 하나요?\n✔️ Do liquids have to come out as well? — 액체류도 꺼내야 하나요?\n✔️ Please take out your laptop. — 노트북을 꺼내주세요.\n✔️ Like this? — 이렇게 하면 되나요?\n\n저장해두고 여행 갈 때 꺼내 보세요! 💾\n\n#여행영어 #영어회화 #해외여행 #여행필수영어 #생활영어 #하루한장면여행영어 #공항영어 #보안검색대 #출국준비",
+  "writer_model": "gemini-3.8-flash"
+}
