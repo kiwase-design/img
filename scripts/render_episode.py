@@ -22,45 +22,47 @@ from PIL import Image, ImageDraw, ImageFont
 
 BASE = "https://generativelanguage.googleapis.com/v1beta"
 MODELS = ["gemini-3-pro-image", "gemini-3.1-flash-image"]
-CHAR_DIR = "characters"
 W, H = 1080, 1350
 FONT_PATH = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 FONT_INDEX = 1  # NotoSansCJK .ttc 안의 KR 폰트
+HAND_FONT = "fonts/hand.ttf"  # 시리즈 손글씨 폰트 (있으면 우선 사용)
 
-CHAR_NAMES = {
-    "nyang_daeri": "Nyang Daeri (gray tabby cat, green eyes, navy necktie)",
-    "meong_bujang": "Meong Bujang (golden retriever, light blue shirt, red necktie)",
-    "ham_jumin": "Ham Jumin (hamster, round glasses, beige cardigan)",
-}
+SERIES = json.load(open("config/series.json", encoding="utf-8"))
+CHARS = SERIES["characters"]
 
 STYLE = (
     "One single panel of a Korean Instagram webtoon (instatoon). "
-    "Simple flat 2D illustration, bold clean black outlines, soft pastel colors, "
-    "cute round proportions, simple uncluttered office background. "
+    f"Art style: {SERIES['style']} "
     "Draw the characters EXACTLY as shown in the attached character reference sheets "
-    "(same colors, face, outfit, proportions). "
-    "IMPORTANT: keep the top 28% of the image as calm, plain, empty background "
+    "(same face, body shape, hair, proportions, same drawing style). "
+    "IMPORTANT: keep the top 28% of the image as calm, plain, empty paper "
     "(no characters, no objects) because speech bubbles will be added there later. "
-    "The illustration must fill the ENTIRE frame edge to edge as one full-bleed scene: "
-    "no panel border, no frame lines, no inner panels, no blank bands. "
+    "One full-bleed scene: no panel border, no frame lines, no inner panels. "
     "Absolutely no text, no letters, no speech bubbles, no captions, no watermark, "
     "and no real brand names, logos or trademarks on any object."
 )
 
 
+def font(size):
+    if os.path.exists(HAND_FONT):
+        return ImageFont.truetype(HAND_FONT, int(size * 1.3))  # 손글씨체는 작게 보여서 키움
+    return ImageFont.truetype(FONT_PATH, size, index=FONT_INDEX)
+
+
 # ---------- 1. 그림 생성 ----------
 
 def _inline_png(path):
+    mime = "image/jpeg" if path.endswith((".jpg", ".jpeg")) else "image/png"
     with open(path, "rb") as f:
-        return {"inlineData": {"mimeType": "image/png", "data": base64.b64encode(f.read()).decode()}}
+        return {"inlineData": {"mimeType": mime, "data": base64.b64encode(f.read()).decode()}}
 
 
 def generate_panel(key, panel):
     parts = []
     refs = []
     for i, c in enumerate(panel["characters"], start=1):
-        parts.append(_inline_png(f"{CHAR_DIR}/{c}.png"))
-        refs.append(f"Reference image {i} = {CHAR_NAMES[c]}.")
+        parts.append(_inline_png(CHARS[c]["ref"]))
+        refs.append(f"Reference image {i} = {CHARS[c]['desc']}")
     prompt = f"{STYLE}\n\n{' '.join(refs)}\n\nScene: {panel['scene']}"
     parts.append({"text": prompt})
     body = {
@@ -178,15 +180,15 @@ def draw_bubble(draw, text, side, top, font):
 def compose(raw_path, panel, out_path, ep_title, ep_no):
     img = fit_cover(Image.open(raw_path))
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(FONT_PATH, 48, index=FONT_INDEX)
+    fnt = font(48)
     top = 70
     for dl in panel["dialogues"]:
-        bottom = draw_bubble(draw, dl["text"], dl.get("side", "center"), top, font)
+        bottom = draw_bubble(draw, dl["text"], dl.get("side", "center"), top, fnt)
         top = bottom + 14
 
     # 하단 작은 표기 (회차/컷)
-    small = ImageFont.truetype(FONT_PATH, 26, index=FONT_INDEX)
-    label = f"오늘도 출근한 고양이 {ep_no}화 · {panel['cut']}/4"
+    small = font(26)
+    label = f"{SERIES['short_title']} {ep_no}화 · {panel['cut']}/{SERIES['panels']}"
     lw = draw.textlength(label, font=small)
     draw.rounded_rectangle((W - lw - 56, H - 62, W - 20, H - 18), 18, fill=(255, 255, 255))
     draw.text((W - lw - 38, H - 58), label, font=small, fill=(90, 90, 90))

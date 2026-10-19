@@ -38,6 +38,7 @@ HELP = """**댓글 명령어**
 | `그림 다시` | 같은 대본으로 그림만 다시 |
 | `다시` | 새 이야기로 처음부터 다시 |
 | `건너뛰기` | 이 회차 버리기 |
+| `도시 오사카` | 회차 이슈에서: 이 회차를 오사카로 다시 / 관리 이슈에서: 다음 회차 도시 지정 |
 | `중단` / `시작` / `상태` | 연재 멈춤 / 재개 / 현재 상태 |"""
 
 
@@ -96,7 +97,7 @@ def control_issue():
     if st.get("control_issue"):
         return st["control_issue"]
     issue = gh("POST", "issues", {
-        "title": "🎛 연재 관리 (오늘도 출근한 고양이)", "labels": ["control"],
+        "title": f"🎛 연재 관리 ({json.load(open('config/series.json', encoding='utf-8'))['title']})", "labels": ["control"],
         "body": "이 이슈에 댓글로 `중단`, `시작`, `상태` 를 남기면 연재를 제어할 수 있어요.\n\n" + HELP,
     })["number"]
     st["control_issue"] = issue
@@ -156,7 +157,8 @@ def preview_md(d, sha):
     for p in s["panels"]:
         talk = " / ".join(f"{x['text']}" for x in p["dialogues"]) or "(대사 없음)"
         lines.append(f"{p['cut']}. {talk}")
-    return f"{imgs}\n\n**대사**\n" + "\n".join(lines) + f"\n\n**캡션**\n```\n{s['caption']}\n```"
+    city = f"**여행지**: {s['city']}  ·  정보 검색 근거: {'✅' if s.get('grounded_research') else '⚠️ 없음 (사실 확인 필요)'}\n\n" if s.get("city") else ""
+    return f"{city}{imgs}\n\n**대사**\n" + "\n".join(lines) + f"\n\n**캡션**\n```\n{s['caption']}\n```"
 
 
 # ---------- 생성 ----------
@@ -264,6 +266,12 @@ def command():
         return
 
     d = ep_from_issue(n)
+    if text.startswith("도시 ") and not d:
+        city = text[3:].strip()
+        open("config/next_city.txt", "w", encoding="utf-8").write(city)
+        git_push(f"다음 도시 지정: {city}")
+        comment(n, f"📍 다음 회차는 **{city}** 로 만들게요.")
+        return
     if not d:
         if text in ("승인", "지금 게시", "다시", "그림 다시", "건너뛰기", "도움말"):
             comment(n, "이 명령은 회차 승인 이슈에서만 쓸 수 있어요.\n\n" + HELP)
@@ -307,6 +315,14 @@ def command():
         git_push(f"{d} 건너뜀")
         comment(n, "🗑 이 회차는 건너뛸게요. 다음 회차는 내일 12시에 만들어져요.")
         gh("PATCH", f"issues/{n}", {"state": "closed", "state_reason": "not_planned"})
+    elif text.startswith("도시 "):
+        city = text[3:].strip()
+        comment(n, f"📍 이 회차를 **{city}** 로 처음부터 다시 만들게요. 새 승인 이슈가 열려요.")
+        gh("PATCH", f"issues/{n}", {"state": "closed", "state_reason": "not_planned"})
+        shutil.rmtree(d)
+        open("config/next_city.txt", "w", encoding="utf-8").write(city)
+        git_push(f"{d} 도시 변경 → {city}")
+        make_episode(d, f"도시 변경 요청 ({city})")
     elif text == "도움말":
         comment(n, HELP)
 
