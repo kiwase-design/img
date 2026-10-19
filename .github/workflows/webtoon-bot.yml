@@ -1,0 +1,73 @@
+name: 연재 봇
+
+on:
+  schedule:
+    - cron: "0 3 * * *"    # 매일 12:00 KST — 다음 회차 생성 + 승인 요청
+    - cron: "0 12 * * *"   # 매일 21:00 KST — 승인된 회차 게시
+    - cron: "0 0 1 * *"    # 매월 1일 — 인스타 토큰 갱신
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "generate / publish / refresh"
+        required: true
+        default: generate
+  push:
+    paths:
+      - "config/trigger.json"   # 수동 실행용: {"action": "generate"}
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: webtoon-bot
+  cancel-in-progress: false
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    # 다른 사람이 단 댓글이나 PR 댓글에는 반응하지 않음
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (!github.event.issue.pull_request &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 의존성 설치
+        run: |
+          pip install -q pillow
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 실행할 작업 결정
+        id: act
+        run: |
+          case "${{ github.event_name }}" in
+            schedule)
+              case "${{ github.event.schedule }}" in
+                "0 3 * * *")  a=generate ;;
+                "0 12 * * *") a=publish ;;
+                *)            a=refresh ;;
+              esac ;;
+            issue_comment)     a=command ;;
+            workflow_dispatch) a="${{ github.event.inputs.action }}" ;;
+            push)              a=$(python -c "import json;print(json.load(open('config/trigger.json'))['action'])") ;;
+          esac
+          echo "action=$a" >> "$GITHUB_OUTPUT"
+          echo "작업: $a"
+
+      - name: 봇 실행
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: python scripts/webtoon_bot.py ${{ steps.act.outputs.action }}
