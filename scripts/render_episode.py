@@ -10,6 +10,7 @@
   <ep>/credits.json     장별 사진 출처 (작가, 페이지)
   <ep>/final/NN.png     인스타 업로드용 1080x1350
 """
+import base64
 import glob
 import json
 import os
@@ -104,8 +105,62 @@ def main_subject_ok(hit, word):
     return any(word[:5] in t for t in top)
 
 
-def fetch_photo(key, query, avoid):
-    """검색어와 태그가 가장 잘 맞는 사진을 골라 (바이트, 출처) 반환. 안 맞으면 검색어를 줄여 다시 찾는다."""
+PEOPLE = {"woman", "women", "girl", "man", "men", "boy", "portrait", "model", "beauty", "fashion",
+          "person", "lady", "female", "male", "face", "selfie", "pretty", "young woman"}
+GEMINI = "https://generativelanguage.googleapis.com/v1beta/models"
+
+
+def people_heavy(hit):
+    top = [t.strip() for t in hit.get("tags", "").lower().split(",")[:4]]
+    return any(t in PEOPLE or t.split()[-1] in PEOPLE for t in top)
+
+
+def gemini_pick(cands, context, query):
+    """Gemini(텍스트 모델, 저렴)가 후보 미리보기를 직접 보고 가장 알맞은 사진 번호를 고른다. 실패하면 None."""
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not key:
+        return None
+    parts = []
+    for i, h in enumerate(cands):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(h["webformatURL"], headers=UA), timeout=30) as r:
+                parts.append({"text": f"Photo {i}:"})
+                parts.append({"inlineData": {"mimeType": "image/jpeg", "data": base64.b64encode(r.read()).decode()}})
+        except Exception:
+            continue
+    if not parts:
+        return None
+    parts.append({"text": (
+        f"These are stock photo candidates for one slide of an Instagram post teaching travel English.\n"
+        f"Slide topic: {context}\nSearch words: {query}\n"
+        "Pick the ONE photo that best illustrates this exact situation. REJECT photos that: "
+        "show readable brand names, airline/company logos or big readable text; "
+        "are mainly a posed portrait of a person or a model; are unrelated to the situation (wrong place). "
+        'Answer JSON only: {"best": <photo number>} or {"best": -1} if none is acceptable.')})
+    model = os.environ.get("GEMINI_VISION_MODEL", "")
+    models = [model] if model else ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3-flash"]
+    for m in models:
+        req = urllib.request.Request(
+            f"{GEMINI}/{m}:generateContent", method="POST",
+            headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+            data=json.dumps({"contents": [{"parts": parts}],
+                             "generationConfig": {"responseMimeType": "application/json", "temperature": 0}}).encode())
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                data = json.loads(r.read())
+            txt = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
+            return int(json.loads(txt)["best"])
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                continue
+            return None
+        except Exception:
+            return None
+    return None
+
+
+def fetch_photo(key, query, avoid, context=""):
+    """검색어로 후보를 모으고, Gemini가 직접 보고 고르게 한다 (실패 시 태그 점수로). 안 맞으면 검색어를 줄여 재검색."""
     words = [w for w in query.lower().split() if w not in STOP]
     tries = [" ".join(words)]
     if len(words) > 2:
@@ -114,19 +169,25 @@ def fetch_photo(key, query, avoid):
         tries += [" ".join(words[i:i + 2]) for i in range(1, len(words) - 1)]
     for q in tries:
         qw = q.split()
-        need = len(qw) if len(qw) <= 2 else len(qw) - 1  # 대부분의 단어가 태그에 있어야 통과
+        need = len(qw) if len(qw) <= 2 else len(qw) - 1
         hits = []
         for ori in ("vertical", "all"):
-            hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
+            hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid and not people_heavy(h)]
             hits = [h for h in hits if relevance(h, qw) >= need and main_subject_ok(h, qw[0])]
-            if len(hits) >= 3:
+            if len(hits) >= 4:
                 break
         if not hits:
             continue
         hits.sort(key=lambda h: (relevance(h, words), h.get("likes", 0)), reverse=True)
-        h = random.choice(hits[:5])  # 잘 맞는 상위 5장 중 무작위 → '그림 다시' 때 다른 사진
+        cands = hits[:8]
+        random.shuffle(cands)  # '그림 다시' 때 다른 사진이 뽑히게
+        best = gemini_pick(cands, context, q)
+        if best == -1:
+            continue  # 쓸 만한 게 없음 → 다음 검색어
+        h = cands[best] if best is not None and 0 <= best < len(cands) else cands[0]
         data = download(h)
-        return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q, "tags": h.get("tags", "")}
+        return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q,
+                      "tags": h.get("tags", ""), "picked_by": "gemini" if best is not None else "tags"}
     return None, None
 
 
@@ -293,13 +354,16 @@ def main():
     avoid = used_photo_ids()
 
     total = len(s["panels"]) + 2
-    jobs = [(1, s["cover_query"])] + [(p["cut"], p["photo_query"]) for p in s["panels"]] \
-        + [(total, s["summary_query"])]
-    for n, query in jobs:
+    def ctx(p):
+        return f"{s.get('topic', '')} — " + " / ".join(d["en"] for d in p["dialogues"])
+    jobs = [(1, s["cover_query"], f"Cover photo for: {s.get('topic', s['title'])} (an attractive wide photo of the place)")] \
+        + [(p["cut"], p["photo_query"], ctx(p)) for p in s["panels"]] \
+        + [(total, s["summary_query"], "Calm simple background for a summary slide (travel mood)")]
+    for n, query, context in jobs:
         raw = f"{ep_dir}/raw/cut{n}.jpg"
         if not compose_only and (force or not os.path.exists(raw)):
             try:
-                img, cred = fetch_photo(key, query, avoid)
+                img, cred = fetch_photo(key, query, avoid, context)
             except (urllib.error.HTTPError, RuntimeError) as e:
                 img, cred = None, None
                 report.append(f"- {n}장: ❌ {e}")
@@ -310,7 +374,7 @@ def main():
             time.sleep(3)  # 연속 요청 완화
             credits[str(n)] = cred
             avoid.add(cred["id"])
-            report.append(f"- {n}장: ✅ 사진 ({cred['query']} · {cred['user']})")
+            report.append(f"- {n}장: ✅ 사진 ({cred['query']} · {cred['user']} · {cred['picked_by']})")
         if not os.path.exists(raw):
             continue
         out = f"{ep_dir}/final/{n:02d}.png"
