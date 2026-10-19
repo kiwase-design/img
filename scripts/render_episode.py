@@ -136,7 +136,7 @@ def gemini_pick(cands, context, query):
         PICK_LOG.append("GEMINI_API_KEY 없음")
         return None
     parts, fails = [], 0
-    for i, h in enumerate(cands[:6]):
+    for i, h in enumerate(cands[:4]):
         try:
             data = get_bytes(h["webformatURL"])
             parts.append({"text": f"Photo {i}:"})
@@ -144,7 +144,7 @@ def gemini_pick(cands, context, query):
         except Exception as e:
             fails += 1
             PICK_LOG.append(f"미리보기 실패 {type(e).__name__} {e}")
-        time.sleep(1)
+        time.sleep(2.5)
     if not parts:
         return None
     parts.append({"text": (
@@ -155,26 +155,28 @@ def gemini_pick(cands, context, query):
         "are mainly a posed portrait of a person or a model; are unrelated to the situation (wrong place). "
         'Answer JSON only: {"best": <photo number>} or {"best": -1} if none is acceptable.')})
     model = os.environ.get("GEMINI_VISION_MODEL", "")
-    models = [model] if model else ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3-flash"]
+    models = [model] if model else ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3-flash", "gemini-2.5-flash"]
     for m in models:
         req = urllib.request.Request(
             f"{GEMINI}/{m}:generateContent", method="POST",
             headers={"x-goog-api-key": key, "Content-Type": "application/json"},
             data=json.dumps({"contents": [{"parts": parts}],
                              "generationConfig": {"responseMimeType": "application/json", "temperature": 0}}).encode())
-        try:
-            with urllib.request.urlopen(req, timeout=120) as r:
-                data = json.loads(r.read())
-            txt = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
-            return int(json.loads(txt)["best"])
-        except urllib.error.HTTPError as e:
-            PICK_LOG.append(f"Gemini {m} HTTP {e.code} {e.read().decode('utf-8','ignore')[:150]}")
-            if e.code == 404:
-                continue
-            return None
-        except Exception as e:
-            PICK_LOG.append(f"Gemini {m} 응답 오류 {type(e).__name__} {e}")
-            return None
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    data = json.loads(r.read())
+                txt = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
+                return int(json.loads(txt)["best"])
+            except urllib.error.HTTPError as e:
+                PICK_LOG.append(f"Gemini {m} HTTP {e.code}")
+                if e.code in (429, 500, 503) and attempt < 2:  # 일시적 과부하 → 잠시 후 재시도
+                    time.sleep(15 * (attempt + 1))
+                    continue
+                break  # 404 등 → 다음 모델
+            except Exception as e:
+                PICK_LOG.append(f"Gemini {m} 응답 오류 {type(e).__name__} {e}")
+                return None
     return None
 
 
