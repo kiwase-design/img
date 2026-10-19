@@ -1,0 +1,110 @@
+{
+  "episode": 1,
+  "topic": "공항 체크인 카운터에서 짐 부치기",
+  "title": "공항 체크인 짐 부치기 영어",
+  "headline": "공항 짐 부치기",
+  "sub": "이 대화만 알면 끝!",
+  "cover_scene": "A warm, realistic photo of Yuna, a Korean woman in her early 20s, standing near an airport check-in counter, smiling brightly at the camera with her passport in hand.",
+  "panels": [
+    {
+      "scene": "Yuna standing in front of an airport check-in counter, smiling warmly and handing her passport to a friendly counter agent.",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Hello! Where are you flying to today?",
+          "ko": "안녕하세요! 오늘 어디로 가시나요?"
+        },
+        {
+          "speaker": "yuna",
+          "en": "Hi, I'm heading to London. Here's my passport.",
+          "ko": "안녕하세요, 런던 가요. 여기 여권이요."
+        }
+      ],
+      "cut": 2,
+      "characters": [
+        "yuna"
+      ]
+    },
+    {
+      "scene": "The airport staff gestures politely toward the luggage belt, while Yuna stands holding the handle of her suitcase.",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Great. How many bags are you checking today?",
+          "ko": "좋습니다. 오늘 부치실 짐이 몇 개인가요?"
+        },
+        {
+          "speaker": "yuna",
+          "en": "Just this one suitcase, and I have a carry-on backpack.",
+          "ko": "이 캐리어 하나만요. 배낭은 기내에 들고 탈게요."
+        }
+      ],
+      "cut": 3,
+      "characters": [
+        "yuna"
+      ]
+    },
+    {
+      "scene": "Yuna places her suitcase onto the luggage scale next to the counter, looking attentively at the staff member.",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Please place it on the scale. Any electronics or batteries inside?",
+          "ko": "저울 위에 올려주세요. 안에 전자기기나 배터리 있나요?"
+        },
+        {
+          "speaker": "yuna",
+          "en": "No, I packed all power banks in my backpack.",
+          "ko": "아니요, 보조배터리는 전부 배낭에 챙겼어요."
+        }
+      ],
+      "cut": 4,
+      "characters": [
+        "yuna"
+      ]
+    },
+    {
+      "scene": "The counter agent smiles and hands the boarding pass and passport back to Yuna, who receives them with a relieved smile.",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Perfect. Here's your boarding pass. Gate closes 20 minutes before departure.",
+          "ko": "네, 다 됐습니다. 탑승권 여기 있어요. 탑승구는 출발 20분 전에 마감돼요."
+        },
+        {
+          "speaker": "yuna",
+          "en": "Thank you so much! Have a wonderful day.",
+          "ko": "정말 감사합니다! 좋은 하루 보내세요."
+        }
+      ],
+      "cut": 5,
+      "characters": [
+        "yuna"
+      ]
+    }
+  ],
+  "key_phrases": [
+    {
+      "en": "How many bags are you checking?",
+      "ko": "부치실 짐이 몇 개인가요?"
+    },
+    {
+      "en": "I have a carry-on backpack.",
+      "ko": "기내용 배낭이 하나 있어요."
+    },
+    {
+      "en": "Please place it on the scale.",
+      "ko": "저울 위에 올려주세요."
+    },
+    {
+      "en": "Here's your boarding pass.",
+      "ko": "탑승권 여기 있습니다."
+    }
+  ],
+  "tip": "보조배터리는 위탁 수하물 불가! 꼭 기내로 챙기세요.",
+  "summary_scene": "Yuna walking happily through the bright airport terminal, holding her boarding pass and smiling confidently with a light backpack on her shoulder.",
+  "caption": "하루 한 장면 여행영어 #1 | 공항 체크인 짐 부치기 영어\n\n공항 카운터 앞에서 긴장한 적 있으신가요?\n이 네 마디 대화만 알면 수하물 부치기 문제없어요!\n\n✔️ How many bags are you checking? — 부치실 짐이 몇 개인가요?\n✔️ I have a carry-on backpack. — 기내용 배낭이 하나 있어요.\n✔️ Please place it on the scale. — 저울 위에 올려주세요.\n✔️ Here's your boarding pass. — 탑승권 여기 있습니다.\n\n저장해두고 여행 갈 때 꺼내 보세요! 💾\n\n※ 이미지는 AI로 생성되었으며 등장인물은 실존 인물이 아닙니다.\n\n#여행영어 #영어회화 #해외여행 #여행필수영어 #생활영어 #하루한장면여행영어 #공항영어 #체크인영어 #수하물부치기",
+  "writer_model": "gemini-3.8-flash",
+  "other_label": "직원",
+  "note": "AI 사진(유나) 버전 — 57df75a 렌더 + 6장은 1장 사진으로 합성"
+}
