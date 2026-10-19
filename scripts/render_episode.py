@@ -138,7 +138,7 @@ def gemini_pick(cands, context, query):
     parts, fails = [], 0
     for i, h in enumerate(cands[:6]):
         try:
-            data = get_bytes(h["previewURL"].replace("_150.", "_340.") if "_150." in h["previewURL"] else h["webformatURL"])
+            data = get_bytes(h["webformatURL"])
             parts.append({"text": f"Photo {i}:"})
             parts.append({"inlineData": {"mimeType": "image/jpeg", "data": base64.b64encode(data).decode()}})
         except Exception as e:
