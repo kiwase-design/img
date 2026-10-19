@@ -77,7 +77,11 @@ def generate_photo(key, scene, bottom_safe=True, shot=""):
             with urllib.request.urlopen(req, timeout=300) as r:
                 data = json.loads(r.read())
         except urllib.error.HTTPError as e:
-            errors.append(f"{model}: HTTP {e.code}")
+            try:
+                msg = json.loads(e.read()).get("error", {}).get("message", "")[:300]
+            except Exception:
+                msg = ""
+            errors.append(f"{model}: HTTP {e.code} {msg}")
             continue
         for cand in data.get("candidates", []):
             for part in cand.get("content", {}).get("parts", []):

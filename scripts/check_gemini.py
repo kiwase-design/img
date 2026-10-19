@@ -4,6 +4,7 @@
 """
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone, timedelta
@@ -52,8 +53,7 @@ def main():
 
     # 2) 짧은 텍스트 생성 (실제 호출 가능 여부)
     text_model = next(
-        (m for m in models if "flash" in m and "image" not in m and "tts" not in m
-         and "live" not in m and "embedding" not in m),
+        (m for m in models if re.fullmatch(r"gemini-\d+(\.\d+)?-flash", m)),
         None,
     )
     if text_model:
@@ -70,6 +70,21 @@ def main():
         else:
             msg = data.get("error", {}).get("message", "")
             lines.append(f"- 텍스트 생성 ({text_model}): ❌ HTTP {status} — {msg}")
+
+    # 3) 이미지 모델 결제 상태 확인 — 오류 메시지 전문 기록
+    for model in ("gemini-3-pro-image", "gemini-3.1-flash-image"):
+        status, data = call("POST", f"models/{model}:generateContent", key, {
+            "contents": [{"parts": [{"text": "a small red dot on white"}]}],
+            "generationConfig": {"responseModalities": ["IMAGE"]},
+        })
+        if status == 200:
+            lines.append(f"- 이미지 생성 ({model}): ✅ 정상")
+        else:
+            err = data.get("error", {})
+            lines.append(f"- 이미지 생성 ({model}): ❌ HTTP {status} / status={err.get('status')}")
+            lines.append(f"  - 메시지: {err.get('message', '')}")
+            for d in err.get("details", []):
+                lines.append(f"  - 상세: {json.dumps(d, ensure_ascii=False)[:600]}")
 
     write(lines)
 
