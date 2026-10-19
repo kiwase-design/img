@@ -28,6 +28,7 @@ SERIES = json.load(open("config/series.json", encoding="utf-8"))
 HERO_ID = next(iter(SERIES["characters"]))
 HERO = SERIES["characters"][HERO_ID]
 PIXABAY = "https://pixabay.com/api/"
+UA = {"User-Agent": "Mozilla/5.0 (compatible; travel-english-bot/1.0; +https://github.com/kiwase-design/img)"}
 
 ACCENT = (255, 94, 98)      # 여행자(나) 라벨
 STAFF = (70, 110, 160)      # 상대방 라벨
@@ -57,8 +58,12 @@ def search_pixabay(key, query, orientation):
         "key": key, "q": query[:100], "image_type": "photo", "orientation": orientation,
         "safesearch": "true", "per_page": 40, "min_width": 1000, "order": "popular",
     })
-    with urllib.request.urlopen(f"{PIXABAY}?{params}", timeout=60) as r:
-        return json.loads(r.read()).get("hits", [])
+    try:
+        with urllib.request.urlopen(urllib.request.Request(f"{PIXABAY}?{params}", headers=UA), timeout=60) as r:
+            return json.loads(r.read()).get("hits", [])
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", "ignore")[:200]
+        raise RuntimeError(f"Pixabay HTTP {e.code}: {body}") from None
 
 
 def fetch_photo(key, query, avoid):
@@ -73,7 +78,7 @@ def fetch_photo(key, query, avoid):
         if not hits:
             continue
         h = random.choice(hits[:8])  # 상위 결과 중 무작위 → '사진 다시' 때 다른 사진
-        with urllib.request.urlopen(h["largeImageURL"], timeout=60) as r:
+        with urllib.request.urlopen(urllib.request.Request(h["largeImageURL"], headers=UA), timeout=60) as r:
             data = r.read()
         return data, {"id": h["id"], "user": h["user"], "page": h["pageURL"], "query": q}
     return None, None
@@ -249,9 +254,9 @@ def main():
         if not compose_only and (force or not os.path.exists(raw)):
             try:
                 img, cred = fetch_photo(key, query, avoid)
-            except urllib.error.HTTPError as e:
+            except (urllib.error.HTTPError, RuntimeError) as e:
                 img, cred = None, None
-                report.append(f"- {n}장: ❌ Pixabay HTTP {e.code}")
+                report.append(f"- {n}장: ❌ {e}")
             if not img:
                 report.append(f"- {n}장: ❌ '{query}' 사진 없음")
                 continue
