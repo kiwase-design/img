@@ -102,7 +102,8 @@ Rules for the English:
 - Each line max 14 words. Easy (A2–B1), but useful. Include the 3–5 most useful phrases a traveler needs here.
 - The conversation must flow logically from start to finish of the situation.
 - No brand names, airline names, real people, politics or religion.
-Korean ("ko"): natural Korean translation a Korean would actually say, not word-for-word.
+Korean ("ko"): natural Korean translation a Korean would actually say, not word-for-word (avoid stiff words like '완벽합니다').
+key_phrases: 3–5 items, mostly lines the TRAVELER says (ready to copy), plus at most one staff question she must understand.
 
 Images: every exchange gets one photo. Write "scene" in English as a photo description: location, who is where, actions, expressions.
 {HERO['name']} is always in the photo. Staff appearance should fit the place (mixed ethnicities). No readable text, signs, screens, logos or uniforms with brands.
