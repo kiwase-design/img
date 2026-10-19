@@ -1,0 +1,134 @@
+{
+  "episode": 1,
+  "city": "오사카",
+  "title": "가족여행 성지 오사카",
+  "caption": "기와세의 여행일기 1화 ✈️ 오사카\n\n📌 비행시간 짧고 인프라 좋아 가족여행 딱!\n📌 USJ와 오사카성으로 남녀노소 만족\n📌 타코야키 & 오코노미야키 필수 먹방\n📌 인파와 지하철 계단 주의, 패스·택시 추천\n\n저장해두고 오사카 갈 때 꺼내보이소!\n\n#기와세의여행일기 #여행툰 #인스타툰 #여행정보 #가족여행 #여행일기 #오사카여행 #오사카맛집 #일본여행 #가족해외여행",
+  "panels": [
+    {
+      "cut": 1,
+      "characters": [
+        "giwase",
+        "heukgom",
+        "badapyobum",
+        "omokunui"
+      ],
+      "scene": "A simple doodle-style airport arrival hall. Giwase stands on the left holding a guidebook, looking confident. Heukgom on the right is already chewing a snack. Badapyobum walks very slowly behind them, and Omokunui is chattering energetically.",
+      "dialogues": [
+        {
+          "speaker": "giwase",
+          "text": "가까워서 가족끼리 오기 딱 좋은 오사카다!",
+          "side": "left"
+        },
+        {
+          "speaker": "omokunui",
+          "text": "오사카는 먹으러 오는 나라 맞제?!",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 2,
+      "characters": [
+        "giwase",
+        "badapyobum"
+      ],
+      "scene": "A split doodle background showing the silhouette of an ancient Japanese castle tower on the left and a theme park gate on the right. Giwase is planning ahead, while Badapyobum stares blankly into space.",
+      "dialogues": [
+        {
+          "speaker": "giwase",
+          "text": "USJ 가고 오사카성 산책하면 딱이다!",
+          "side": "left"
+        },
+        {
+          "speaker": "badapyobum",
+          "text": "아빠 성까지 걸어가기 너무 먼데요...",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 3,
+      "characters": [
+        "giwase",
+        "heukgom"
+      ],
+      "scene": "A simple street food stall scene. Giant round octopus balls with dancing bonito flakes and a thick savory pancake grilling on an iron griddle. Heukgom on the right is stuffing food into her mouth with both hands happily, while Giwase looks amazed.",
+      "dialogues": [
+        {
+          "speaker": "giwase",
+          "text": "타코야키랑 오코노미야키 억수로 든든하제?",
+          "side": "left"
+        },
+        {
+          "speaker": "heukgom",
+          "text": "철판째로 다 먹을 수 있겠는데?",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 4,
+      "characters": [
+        "giwase",
+        "omokunui",
+        "badapyobum"
+      ],
+      "scene": "Doodle of a canal with neon billboards reflecting in the water, a tourist cruise boat passing by. On the side, a vibrant traditional market stall with hanging seafood. Giwase points toward the boat.",
+      "dialogues": [
+        {
+          "speaker": "giwase",
+          "text": "구로몬 시장 돌고 도톤보리 유람선 타자!",
+          "side": "left"
+        },
+        {
+          "speaker": "omokunui",
+          "text": "달리는 아저씨 간판 앞에서 사진 찍어줘!",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 5,
+      "characters": [
+        "giwase",
+        "badapyobum",
+        "omokunui"
+      ],
+      "scene": "Crowded subway stairs packed with stick-figure tourists. No elevator in sight. Giwase carries heavy luggage looking exhausted with sweat drops. Badapyobum crawls up slowly, and Omokunui is frowning with folded arms.",
+      "dialogues": [
+        {
+          "speaker": "giwase",
+          "text": "지하철 계단 지옥에 줄이 끝이 없다...",
+          "side": "left"
+        },
+        {
+          "speaker": "omokunui",
+          "text": "다리 아파 죽겠는데 엘베 어딨는데!",
+          "side": "right"
+        }
+      ]
+    },
+    {
+      "cut": 6,
+      "characters": [
+        "giwase"
+      ],
+      "scene": "A close-up doodle of Giwase looking straight at the reader with an intense, determined ENTJ expression, pointing his finger forward. A small speech bubble above him.",
+      "dialogues": [
+        {
+          "speaker": "giwase",
+          "text": "명소 패스 챙기고 짧은 거리는 택시 타라!",
+          "side": "center"
+        },
+        {
+          "speaker": "giwase",
+          "text": "유익했제? 퍼뜩 좋아요 누르고 저장해라!",
+          "side": "center"
+        }
+      ]
+    }
+  ],
+  "writer_model": "gemini-3.8-flash",
+  "grounded_research": true,
+  "research": "* **도시 한 줄 소개**\n  * 비행시간이 짧고 인프라가 잘 갖추어져 있어 아이나 부모님과 함께 떠나기 좋은 일본의 대표 미식·관광 도시.\n\n* **대표 볼거리 2곳**\n  * **유니버설 스튜디오 재팬(USJ):** 슈퍼 닌텐도 월드, 해리포터 등 전 연령대가 함께 즐길 수 있는 세계적인 테마파크.\n  * **오사카성:** 넓고 평탄한 공원 산책로와 웅장한 천수각이 어우러져 어르신과 여유롭게 둘러보기 좋은 역사 명소.\n\n* **대표 먹거리 2개**\n  * **타코야키:** 겉은 바삭하고 속은 부드러운 반죽에 문어가 씹히는 오사카 대표 간식.\n  * **오코노미야키:** 양배추, 고기, 해산물을 철판에 두툼하게 부쳐내 남녀노소 호불호 없이 든든하게 먹기 좋은 요리.\n\n* **기타 구경거리 (1~2개)**\n  * **구로몬 시장:** 신선한 제철 과일과 다양한 해산물 구이를 즉석에서 맛볼 수 있는 활기찬 전통시장.\n  * **도톤보리 거리 & 리버크루즈:** 글리코상 앞에서 가족 기념사진을 찍고 도톤보리강을 따라 유람선을 타며 화려한 간판과 야경을 즐기는 코스.\n\n* **솔직한 단점 2개**\n  * **극심한 인파와 긴 대기 시간:** 주요 관광지와 유명 맛집마다 대기 줄이 길어 어린이나 부모님의 체력 소모가 큼.\n  * **유모차·휠체어 이동이 불편한 대중교통:** 지하철역 구조가 복잡하고 일부 출구는 계단 위주로 되어 있어 엘리베이터 동선을 찾느라 이동 피로도가 높음.\n\n* **여행 팁 1개**\n  * 대중교통 환승 계단이 많으므로 가족의 체력을 고려해 시내 짧은 구간은 택시를 적절히 병행하고, 테마파크나 주요 명소는 대기 시간을 줄일 수 있는 전용 패스를 미리 준비하는 것이 좋습니다."
+}
