@@ -48,7 +48,7 @@ jobs:
       - name: 의존성 설치
         run: |
           pip install -q pillow
-          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra
           mkdir -p fonts
           url=$(python -c "import json;print(json.load(open('config/series.json')).get('font_url',''))")
           [ -n "$url" ] && curl -fsSL -o fonts/hand.ttf "$url" || echo "손글씨 폰트 없음 — 기본 폰트 사용"

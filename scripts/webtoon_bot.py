@@ -35,10 +35,10 @@ HELP = """**댓글 명령어**
 |---|---|
 | `승인` | 오늘 저녁 8시 50분에 게시 |
 | `지금 게시` | 바로 게시 |
-| `그림 다시` | 같은 대본으로 그림만 다시 |
-| `다시` | 새 이야기로 처음부터 다시 |
+| `그림 다시` | 같은 대본으로 사진만 다시 |
+| `다시` | 같은 상황, 새 대화로 처음부터 다시 |
 | `건너뛰기` | 이 회차 버리기 |
-| `도시 오사카` | 회차 이슈에서: 이 회차를 오사카로 다시 / 관리 이슈에서: 다음 회차 도시 지정 |
+| `주제 호텔 체크인` | 승인 이슈에서: 이 편을 그 상황으로 다시 / 관리 이슈에서: 다음 편 상황 지정 |
 | `중단` / `시작` / `상태` | 연재 멈춤 / 재개 / 현재 상태 |"""
 
 
@@ -124,7 +124,7 @@ def status(d):
 
 def ep_title(d):
     s = json.load(open(f"{d}/script.json", encoding="utf-8"))
-    return f"{s['episode']}화 「{s['title']}」"
+    return f"#{s['episode']} 「{s['title']}」"
 
 
 def issue_of(d):
@@ -151,14 +151,15 @@ def render(d, force=False):
 def preview_md(d, sha):
     s = json.load(open(f"{d}/script.json", encoding="utf-8"))
     imgs = " ".join(
-        f'<img src="{RAW}/{sha}/{p}" width="240">' for p in sorted(glob.glob(f"{d}/final/*.png"))
+        f'<img src="{RAW}/{sha}/{p}" width="200">' for p in sorted(glob.glob(f"{d}/final/*.png"))
     )
     lines = []
     for p in s["panels"]:
-        talk = " / ".join(f"{x['text']}" for x in p["dialogues"]) or "(대사 없음)"
-        lines.append(f"{p['cut']}. {talk}")
-    city = f"**여행지**: {s['city']}  ·  정보 검색 근거: {'✅' if s.get('grounded_research') else '⚠️ 없음 (사실 확인 필요)'}\n\n" if s.get("city") else ""
-    return f"{city}{imgs}\n\n**대사**\n" + "\n".join(lines) + f"\n\n**캡션**\n```\n{s['caption']}\n```"
+        for x in p["dialogues"]:
+            who = "🙋" if x["speaker"] != "staff" else "🧑‍💼"
+            lines.append(f"{who} {x.get('en', x.get('text', ''))}  \n   ↳ {x.get('ko', '')}")
+    topic = f"**상황**: {s['topic']}\n\n" if s.get("topic") else ""
+    return f"{topic}{imgs}\n\n**대화**\n" + "\n".join(lines) + f"\n\n**캡션**\n```\n{s['caption']}\n```"
 
 
 # ---------- 생성 ----------
@@ -266,11 +267,11 @@ def command():
         return
 
     d = ep_from_issue(n)
-    if text.startswith("도시 ") and not d:
+    if text.startswith("주제 ") and not d:
         city = text[3:].strip()
-        open("config/next_city.txt", "w", encoding="utf-8").write(city)
-        git_push(f"다음 도시 지정: {city}")
-        comment(n, f"📍 다음 회차는 **{city}** 로 만들게요.")
+        open("config/next_topic.txt", "w", encoding="utf-8").write(city)
+        git_push(f"다음 주제 지정: {city}")
+        comment(n, f"📍 다음 편은 **{city}** 상황으로 만들게요.")
         return
     if not d:
         if text in ("승인", "지금 게시", "다시", "그림 다시", "건너뛰기", "도움말"):
@@ -315,14 +316,14 @@ def command():
         git_push(f"{d} 건너뜀")
         comment(n, "🗑 이 회차는 건너뛸게요. 다음 회차는 내일 12시에 만들어져요.")
         gh("PATCH", f"issues/{n}", {"state": "closed", "state_reason": "not_planned"})
-    elif text.startswith("도시 "):
+    elif text.startswith("주제 "):
         city = text[3:].strip()
-        comment(n, f"📍 이 회차를 **{city}** 로 처음부터 다시 만들게요. 새 승인 이슈가 열려요.")
+        comment(n, f"📍 이 편을 **{city}** 상황으로 처음부터 다시 만들게요. 새 승인 이슈가 열려요.")
         gh("PATCH", f"issues/{n}", {"state": "closed", "state_reason": "not_planned"})
         shutil.rmtree(d)
-        open("config/next_city.txt", "w", encoding="utf-8").write(city)
-        git_push(f"{d} 도시 변경 → {city}")
-        make_episode(d, f"도시 변경 요청 ({city})")
+        open("config/next_topic.txt", "w", encoding="utf-8").write(city)
+        git_push(f"{d} 주제 변경 → {city}")
+        make_episode(d, f"주제 변경 요청 ({city})")
     elif text == "도움말":
         comment(n, HELP)
 
