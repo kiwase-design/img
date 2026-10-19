@@ -62,7 +62,12 @@ def generate_panel(key, panel):
     refs = []
     for i, c in enumerate(panel["characters"], start=1):
         parts.append(_inline_png(CHARS[c]["ref"]))
-        refs.append(f"Reference image {i} = {CHARS[c]['desc']}")
+        refs.append(f"Reference image {len(parts)} = {CHARS[c]['desc']}")
+        base = CHARS[c].get("base_ref")
+        if base and os.path.exists(base):
+            parts.append(_inline_png(base))
+            refs.append(f"Reference image {len(parts)} = the ORIGINAL hand drawing of {CHARS[c]['name']}; "
+                        "match its asymmetric swooping hair curl with loop, separate oval head on the body, and stubble dots.")
     prompt = f"{STYLE}\n\n{' '.join(refs)}\n\nScene: {panel['scene']}"
     parts.append({"text": prompt})
     body = {
