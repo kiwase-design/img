@@ -19,5 +19,6 @@
   ],
   "ai_notice": "",
   "photo_source": "pixabay",
-  "photo_check": false
+  "photo_check": false,
+  "post_type": "reel"
 }

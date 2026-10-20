@@ -1,6 +1,6 @@
 # 하루 한 장면 여행영어 — 인스타 자동 게시 봇
 
-여행 상황별 영어 회화를 6장 캐러셀로 만들어 인스타그램(@ki_pacificpictures)에 매일 자동 게시한다.
+여행 상황별 영어 회화를 6장 슬라이드로 만들고, 원어민 음성(Kokoro TTS)을 입힌 **릴스 영상**으로 인스타그램(@ki_pacificpictures)에 매일 자동 게시한다. (`config/series.json`의 `post_type`: reel / carousel)
 모든 작업은 GitHub Actions에서 돌고, 결과는 레포에 커밋된다. (Actions 로그는 외부에서 못 읽으므로 결과·오류는 파일과 이슈 댓글로 남긴다.)
 
 ## 하루 흐름 (`.github/workflows/webtoon-bot.yml`, KST)
@@ -16,7 +16,8 @@
 
 ## 수동 실행
 `config/trigger.json` 을 수정해 push 하면 봇이 그 action 을 실행한다.
-`{"action": "generate" | "publish" | "rerender" | "publish_now" | "dryrun", "episode": "episodes/ep001"}`
+`{"action": "generate" | "publish" | "rerender" | "publish_now" | "dryrun" | "reel_test" | "cleanup", "episode": "episodes/ep001"}`
+- `reel_test`: 게시 없이 해당 편 릴스 영상만 생성 / `cleanup`: 게시 30일 지난 영상·사진 삭제 (generate 때 자동 실행)
 - `rerender`: raw 사진이 없는 장만 다시 받아 합성 (특정 장을 바꾸려면 `raw/cutN.jpg` 삭제 후 실행)
 - `publish_now`: 해당 편 승인+즉시 게시
 - `dryrun`: 게시·이슈 없이 `checks/dryrun/` 에 테스트 편 생성
@@ -24,7 +25,8 @@
 ## 구성
 - `scripts/write_episode.py` — Gemini 텍스트로 대본 작성 (상황: `config/situations.json` 순서, 장별 Pixabay 검색어 포함)
 - `scripts/render_episode.py` — Pixabay 사진 검색·다운로드 + 반투명 자막 카드 합성 (1080x1350). 사진은 **"여성 + 장소(script의 place)" 인물 사진 우선**, 여성이 나오는 패션·뷰티 사진은 가산점으로 더 우선. 없으면 장소·사물 사진으로 대체. 사무실·선정적 사진은 제외
-- `scripts/publish_instagram.py` — 인스타 Graph API(Instagram 로그인 방식) 캐러셀 게시, 캡션에 Pixabay 출처 자동 추가
+- `scripts/make_reel.py` — 슬라이드 + Kokoro TTS(직원 am_michael / 나 af_heart, 핵심 표현은 천천히) → 1080x1920 mp4. 게시 직전에 생성
+- `scripts/publish_instagram.py` — 인스타 Graph API(Instagram 로그인 방식). reel.mp4 있으면 릴스, 없으면 캐러셀. 캡션에 Pixabay 출처 자동 추가
 - `config/series.json` — 시리즈 설정 (`photo_check`: Gemini가 사진 후보를 직접 보고 고르기, 기본 false)
 - `episodes/epNNN/` — script.json, credits.json, raw/, final/, issue.json, APPROVED, published.json
 - `archive/` — 이전 시리즈(고양이 웹툰, 기와세 여행일기, AI 실사 유나 버전 자료)

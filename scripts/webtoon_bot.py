@@ -141,6 +141,8 @@ def ep_from_issue(number):
 
 
 def render(d, force=False):
+    if os.path.exists(f"{d}/reel.mp4"):
+        os.remove(f"{d}/reel.mp4")  # 사진이 바뀌면 영상도 게시 때 새로 만듦
     args = ["python", "scripts/render_episode.py", d] + (["--force"] if force else [])
     sh(*args)
     finals = glob.glob(f"{d}/final/*.png")
