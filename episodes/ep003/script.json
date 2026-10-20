@@ -1,0 +1,110 @@
+{
+  "episode": 3,
+  "topic": "기내에서 음료·식사 주문하기",
+  "title": "기내식 음료 주문 영어",
+  "other_label": "승무원",
+  "headline": "기내식 주문",
+  "sub": "비프? 치킨? 당황 끝!",
+  "place": "airplane",
+  "cover_query": "airplane passenger cabin",
+  "panels": [
+    {
+      "photo_query": "airplane food meal",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Would you like chicken or pasta for dinner?",
+          "ko": "식사로 치킨과 파스타 중 어떤 걸로 하시겠어요?"
+        },
+        {
+          "speaker": "me",
+          "en": "I'll have the chicken, please.",
+          "ko": "치킨으로 부탁드려요."
+        }
+      ],
+      "cut": 2,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "airplane beverage cup",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "What can I get you to drink?",
+          "ko": "음료는 어떤 걸로 드릴까요?"
+        },
+        {
+          "speaker": "me",
+          "en": "Could I have an apple juice, please?",
+          "ko": "사과 주스 한 잔 주실 수 있나요?"
+        }
+      ],
+      "cut": 3,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "hot water mug",
+      "dialogues": [
+        {
+          "speaker": "me",
+          "en": "Could I also get a cup of warm water?",
+          "ko": "따뜻한 물 한 잔도 같이 주실 수 있을까요?"
+        },
+        {
+          "speaker": "staff",
+          "en": "Of course! I will bring that right out.",
+          "ko": "그럼요! 바로 가져다드릴게요."
+        }
+      ],
+      "cut": 4,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "airplane cabin seat",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Here is your meal. Enjoy your flight!",
+          "ko": "식사 나왔습니다. 편안한 비행 되세요!"
+        },
+        {
+          "speaker": "me",
+          "en": "Thank you so much for your help.",
+          "ko": "정말 감사합니다."
+        }
+      ],
+      "cut": 5,
+      "characters": [
+        "me"
+      ]
+    }
+  ],
+  "key_phrases": [
+    {
+      "en": "I'll have the ~, please.",
+      "ko": "~로 할게요."
+    },
+    {
+      "en": "What can I get you to drink?",
+      "ko": "(승무원) 마실 건 무엇으로 드릴까요?"
+    },
+    {
+      "en": "Could I have an apple juice, please?",
+      "ko": "사과 주스 한 잔 주시겠어요?"
+    },
+    {
+      "en": "Could I also get a cup of warm water?",
+      "ko": "따뜻한 물 한 잔도 같이 주실 수 있나요?"
+    }
+  ],
+  "tip": "원하는 메뉴가 품절이면 No problem! 뒤에 다른 메뉴를 말하세요.",
+  "summary_query": "airplane window sky",
+  "caption": "하루 한 장면 여행영어 #3 | 기내식 음료 주문 영어\n\n기내식 카트가 다가올 때마다 심장 떨리셨나요?\n이 네 마디만 알면 기내식과 음료 주문은 걱정 없어요!\n\n✔️ I'll have the ~, please. — ~로 할게요.\n✔️ What can I get you to drink? — 음료는 어떤 걸로 드릴까요?\n✔️ Could I have an apple juice, please? — 사과 주스 한 잔 주시겠어요?\n✔️ Could I also get a cup of warm water? — 따뜻한 물 한 잔도 같이 주실 수 있나요?\n\n저장해두고 여행 갈 때 꺼내 보세요! 💾\n\n#여행영어 #영어회화 #해외여행 #여행필수영어 #생활영어 #하루한장면여행영어 #기내식영어 #비행기영어 #기내영어",
+  "writer_model": "gemini-3.8-flash"
+}
