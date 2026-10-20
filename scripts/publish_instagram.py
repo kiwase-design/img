@@ -1,4 +1,4 @@
-"""회차를 인스타그램 캐러셀로 게시.
+"""회차를 인스타그램에 게시 — <ep>/reel.mp4 가 있으면 릴스, 없으면 캐러셀.
 
 사용법: python scripts/publish_instagram.py episodes/ep001 <commit_sha>
 
@@ -37,8 +37,13 @@ def call(method, path, token, params=None):
         raise RuntimeError(f"{path}: HTTP {e.code} — {err.get('message', '')} (code {err.get('code')})")
 
 
-def wait_ready(container_id, token, label):
-    for _ in range(30):
+class _Done(Exception):
+    def __init__(self, post, info):
+        self.post, self.info = post, info
+
+
+def wait_ready(container_id, token, label, tries=30):
+    for _ in range(tries):
         status = call("GET", container_id, token, {"fields": "status_code,status"})
         code = status.get("status_code")
         if code == "FINISHED":
@@ -58,8 +63,9 @@ def main():
 
     token = os.environ["INSTAGRAM_ACCESS_TOKEN"].strip()
     script = json.load(open(f"{ep_dir}/script.json", encoding="utf-8"))
+    reel = os.path.exists(f"{ep_dir}/reel.mp4")
     images = sorted(glob.glob(f"{ep_dir}/final/*.jpg"))
-    if not 2 <= len(images) <= 10:
+    if not reel and not 2 <= len(images) <= 10:
         raise SystemExit(f"캐러셀 이미지는 2~10장이어야 함 (현재 {len(images)}장)")
     urls = [f"https://raw.githubusercontent.com/{REPO}/{sha}/{p}" for p in images]
     caption = script["caption"]
@@ -72,6 +78,16 @@ def main():
 
     try:
         user_id = call("GET", "me", token, {"fields": "user_id"})["user_id"]
+        if reel:
+            vurl = f"https://raw.githubusercontent.com/{REPO}/{sha}/{ep_dir}/reel.mp4"
+            c = call("POST", f"{user_id}/media", token, {
+                "media_type": "REELS", "video_url": vurl, "caption": caption, "share_to_feed": "true",
+                "cover_url": urls[0] if urls else "",
+            })
+            wait_ready(c["id"], token, "릴스 영상", tries=60)
+            post = call("POST", f"{user_id}/media_publish", token, {"creation_id": c["id"]})
+            info = call("GET", post["id"], token, {"fields": "permalink"})
+            raise _Done(post, info)
         children = []
         for i, u in enumerate(urls, 1):
             c = call("POST", f"{user_id}/media", token, {"image_url": u, "is_carousel_item": "true"})
@@ -83,6 +99,8 @@ def main():
         wait_ready(carousel["id"], token, "캐러셀")
         post = call("POST", f"{user_id}/media_publish", token, {"creation_id": carousel["id"]})
         info = call("GET", post["id"], token, {"fields": "permalink"})
+    except _Done as d:
+        post, info = d.post, d.info
     except RuntimeError as e:
         with open(f"{ep_dir}/publish_error.md", "w", encoding="utf-8") as f:
             f.write(f"# 게시 실패\n\n- 시각: {kst:%Y-%m-%d %H:%M KST}\n- 오류: {e}\n")
@@ -90,7 +108,8 @@ def main():
         raise SystemExit(1)
 
     result = {"media_id": post["id"], "permalink": info.get("permalink"),
-              "published_at": kst.isoformat(timespec="minutes"), "images": len(urls)}
+              "published_at": kst.isoformat(timespec="minutes"), "images": len(urls),
+              "type": "reel" if reel else "carousel"}
     with open(f"{ep_dir}/published.json", "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     if os.path.exists(f"{ep_dir}/publish_error.md"):

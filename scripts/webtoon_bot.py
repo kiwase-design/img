@@ -29,6 +29,7 @@ KST = timezone(timedelta(hours=9))
 RAW = f"https://raw.githubusercontent.com/{REPO}"
 ALLOWED = {"OWNER", "MEMBER", "COLLABORATOR"}
 POST_HOUR, POST_MIN = 20, 50  # 매일 게시 시각 (KST)
+SERIES_FORMAT_REEL = json.load(open("config/series.json", encoding="utf-8")).get("post_type", "carousel") == "reel"
 
 HELP = """**댓글 명령어**
 | 명령 | 동작 |
@@ -167,6 +168,10 @@ def preview_md(d, sha):
 
 def generate(reason="매일 자동 생성"):
     control_issue()  # 관리 이슈가 없으면 만들어 둠
+    try:
+        cleanup()  # 하루 한 번, 게시 30일 지난 영상·사진 정리
+    except Exception as e:
+        print("정리 실패:", e)
     st = load_state()
     if not st.get("enabled", True):
         print("연재 중단 상태 — 생성하지 않음")
@@ -221,6 +226,8 @@ def publish(only=None):
         from PIL import Image
         for p in sorted(glob.glob(f"{d}/final/*.png")):
             Image.open(p).convert("RGB").save(p[:-4] + ".jpg", quality=92)
+        if SERIES_FORMAT_REEL and not os.path.exists(f"{d}/reel.mp4"):
+            sh("python", "scripts/make_reel.py", d)  # 원어민 음성 릴스 영상
         sha = git_push(f"{d} 게시용 JPG")
         res = subprocess.run(["python", "scripts/publish_instagram.py", d, sha])
         git_push(f"{d} 게시 결과")
