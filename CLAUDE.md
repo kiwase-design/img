@@ -3,7 +3,9 @@
 여행 상황별 영어 회화를 6장 슬라이드로 만들고, 원어민 음성(Kokoro TTS)을 입힌 **릴스 영상**으로 인스타그램(@ki_pacificpictures)에 매일 자동 게시한다. (`config/series.json`의 `post_type`: reel / carousel)
 모든 작업은 GitHub Actions에서 돌고, 결과는 레포에 커밋된다. (Actions 로그는 외부에서 못 읽으므로 결과·오류는 파일과 이슈 댓글로 남긴다.)
 
-## 하루 흐름 (`.github/workflows/webtoon-bot.yml`, KST)
+## 하루 흐름 (KST)
+**주 시계는 Claude 예약 작업**이다: 매일 12:05에 `{"action":"generate"}`, 20:45에 `{"action":"publish"}` 를 `config/trigger.json` 에 커밋·푸시해 봇을 깨운다.
+GitHub cron(`.github/workflows/webtoon-bot.yml`)은 이 레포에서 몇 시간씩 늦거나 빠져서 예비로만 남겨둠 (중복 실행돼도 안전).
 - 12:07 / 12:37 `generate` — 다음 편 대본+사진 생성 → `episode` 라벨 승인 이슈 열림
 - 20:13 / 20:31 `publish` — 승인된 편을 20:50까지 기다렸다 게시 (21:03, 21:23 재시도)
 - 매월 1일 `refresh` — 인스타 토큰 갱신
