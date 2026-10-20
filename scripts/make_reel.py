@@ -45,6 +45,9 @@ def silence(sec):
 
 
 def write_wav(path, audio):
+    peak = float(np.max(np.abs(audio))) if len(audio) else 0
+    if peak > 0:
+        audio = audio * (0.9 / peak)  # 음량을 일정하게 키움 (휴대폰 스피커에서도 잘 들리게)
     a = np.clip(audio, -1, 1)
     pcm = (a * 32767).astype(np.int16)
     with wave.open(path, "wb") as w:
