@@ -152,6 +152,25 @@ def render(d, force=False):
         raise RuntimeError(f"그림 생성 실패\n\n{report}")
 
 
+def make_reel(d):
+    """릴스 영상을 만들어 두고 성공 여부 반환 (실패해도 사진 승인은 진행)."""
+    if not SERIES_FORMAT_REEL:
+        return False
+    try:
+        sh("python", "scripts/make_reel.py", d)
+        return True
+    except Exception as e:
+        print("릴스 생성 실패:", e)
+        return False
+
+
+def reel_link(d, sha):
+    if not os.path.exists(f"{d}/reel.mp4"):
+        return ""
+    return (f"\n\n🎬 **릴스 미리보기**: [영상 보기](https://github.com/{REPO}/blob/{sha}/{d}/reel.mp4)"
+            f" · [다운로드](https://raw.githubusercontent.com/{REPO}/{sha}/{d}/reel.mp4)")
+
+
 def preview_md(d, sha):
     s = json.load(open(f"{d}/script.json", encoding="utf-8"))
     imgs = " ".join(
@@ -163,7 +182,8 @@ def preview_md(d, sha):
             who = "🙋" if x["speaker"] != "staff" else "🧑‍💼"
             lines.append(f"{who} {x.get('en', x.get('text', ''))}  \n   ↳ {x.get('ko', '')}")
     topic = f"**상황**: {s['topic']}\n\n" if s.get("topic") else ""
-    return f"{topic}{imgs}\n\n**대화**\n" + "\n".join(lines) + f"\n\n**캡션**\n```\n{s['caption']}\n```"
+    return (f"{topic}{imgs}{reel_link(d, sha)}\n\n**대화**\n" + "\n".join(lines)
+            + f"\n\n**캡션**\n```\n{s['caption']}\n```")
 
 
 # ---------- 생성 ----------
@@ -191,6 +211,7 @@ def make_episode(d, reason):
     try:
         sh("python", "scripts/write_episode.py", d)
         render(d)
+        make_reel(d)
     except Exception as e:
         shutil.rmtree(d, ignore_errors=True)  # 다음 실행 때 다시 시도할 수 있게 정리
         comment(control_issue(), f"⚠️ `{d}` 생성 중 오류가 났어요. 다음 생성 시간에 다시 시도해요.\n\n```\n{e}\n```")
@@ -320,6 +341,7 @@ def command():
         for sub in ("raw", "final"):
             shutil.rmtree(f"{d}/{sub}", ignore_errors=True)
         render(d)
+        make_reel(d)
         sha = git_push(f"{d} 그림 다시")
         comment(n, "새 그림이에요. 괜찮으면 `승인`.\n\n" + preview_md(d, sha))
     elif text == "다시":
@@ -376,6 +398,7 @@ def rerender():
     for p in glob.glob(f"{d}/final/*"):
         os.remove(p)
     render(d)
+    make_reel(d)
     sha = git_push(f"{d} 수정본 렌더링")
     issue = issue_of(d)
     if issue:
@@ -397,7 +420,9 @@ def reel_test():
     """config/trigger.json 의 episode 로 릴스 영상만 만들어 커밋 (게시 안 함)."""
     d = json.load(open("config/trigger.json", encoding="utf-8"))["episode"].rstrip("/")
     sh("python", "scripts/make_reel.py", d)
-    git_push(f"{d} 릴스 테스트 영상")
+    sha = git_push(f"{d} 릴스 영상")
+    if issue_of(d):
+        comment(issue_of(d), "🎬 릴스 영상이에요. 괜찮으면 `승인`." + reel_link(d, sha))
 
 
 def cleanup(days=30):

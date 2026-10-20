@@ -73,7 +73,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: 음성·영상 도구 캐시
-        if: contains(fromJSON('["publish","publish_now","reel_test","command"]'), steps.act.outputs.action)
+        if: contains(fromJSON('["generate","rerender","publish","publish_now","reel_test","command"]'), steps.act.outputs.action)
         uses: actions/cache@v4
         with:
           path: |
@@ -82,7 +82,7 @@ jobs:
           key: tts-kokoro-v1
 
       - name: 음성·영상 도구 설치 (Kokoro TTS, ffmpeg)
-        if: contains(fromJSON('["publish","publish_now","reel_test","command"]'), steps.act.outputs.action)
+        if: contains(fromJSON('["generate","rerender","publish","publish_now","reel_test","command"]'), steps.act.outputs.action)
         run: |
           sudo apt-get install -y -qq espeak-ng ffmpeg
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu
