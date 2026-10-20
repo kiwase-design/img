@@ -150,9 +150,9 @@ def gemini_pick(cands, context, query):
     parts.append({"text": (
         f"These are stock photo candidates for one slide of an Instagram post teaching travel English.\n"
         f"Slide topic: {context}\nSearch words: {query}\n"
-        "Pick the ONE photo that best illustrates this exact situation. REJECT photos that: "
+        "Pick the ONE photo that best illustrates this exact situation, preferring photos with a young woman traveler in it. REJECT photos that: "
         "show readable brand names, airline/company logos or big readable text; "
-        "are mainly a posed portrait of a person or a model; are unrelated to the situation (wrong place). "
+        "are unrelated to the situation (wrong place). "
         'Answer JSON only: {"best": <photo number>} or {"best": -1} if none is acceptable.')})
     model = os.environ.get("GEMINI_VISION_MODEL", "")
     models = [model] if model else ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3-flash", "gemini-2.5-flash"]
@@ -180,32 +180,49 @@ def gemini_pick(cands, context, query):
     return None
 
 
+WOMAN = {"woman", "women", "girl", "lady", "female"}
+
+
+def woman_score(hit):
+    tags = [t.strip() for t in hit.get("tags", "").lower().split(",")]
+    words = {w for t in tags for w in t.split()}
+    s = 0
+    if words & WOMAN:
+        s += 2
+        if any(t in WOMAN or t.split()[-1] in WOMAN for t in tags[:3]):
+            s += 1  # 대표 태그가 여성 → 인물이 주인공인 사진
+    if words & {"man", "men", "boy", "male"} and not words & WOMAN:
+        s -= 1
+    return s
+
+
 def fetch_photo(key, query, avoid, context=""):
-    """검색어로 후보를 모으고, Gemini가 직접 보고 고르게 한다 (실패 시 태그 점수로). 안 맞으면 검색어를 줄여 재검색."""
-    words = [w for w in query.lower().split() if w not in STOP]
-    tries = [" ".join(words)]
-    if len(words) > 2:
-        tries.append(" ".join(words[:2]))
+    """여성 인물 사진을 우선으로 검색어에 맞는 사진을 고른다. 없으면 장소 사진으로 넓혀 재검색."""
+    words = [w for w in query.lower().split() if w not in STOP and w not in WOMAN]
+    place = [" ".join(words)]
     if len(words) > 1:
-        tries += [" ".join(words[i:i + 2]) for i in range(1, len(words) - 1)]
-    for q in tries:
-        qw = q.split()
-        need = len(qw) if len(qw) <= 2 else len(qw) - 1
+        place += [" ".join(words[:2]), words[0]]
+    # 1순위: 여성 + 장소/사물 → 2순위: 장소/사물만
+    tries = [("woman " + q, True) for q in dict.fromkeys(place)] + [(q, False) for q in dict.fromkeys(place)]
+    for q, want_woman in tries:
+        qw = [w for w in q.split() if w not in WOMAN]
+        need = max(1, len(qw) - 1)
         hits = []
         for ori in ("vertical", "all"):
-            hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid and not people_heavy(h)]
-            hits = [h for h in hits if relevance(h, qw) >= need and main_subject_ok(h, qw[0])]
-            if len(hits) >= 4:
+            hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
+            hits = [h for h in hits if relevance(h, qw) >= need]
+            if want_woman:
+                hits = [h for h in hits if woman_score(h) >= 2]
+            if len(hits) >= 3:
                 break
         if not hits:
             continue
-        hits.sort(key=lambda h: (relevance(h, words), h.get("likes", 0)), reverse=True)
-        cands = hits[:8]
-        random.shuffle(cands)  # '그림 다시' 때 다른 사진이 뽑히게
-        # Gemini 사진 검사는 기본 꺼짐: Pixabay가 미리보기 다운로드를 자주 막아서 오히려 실패가 늘어남
+        hits.sort(key=lambda h: (woman_score(h), relevance(h, qw), h.get("likes", 0)), reverse=True)
+        cands = hits[:6]
+        random.shuffle(cands)
         best = gemini_pick(cands, context, q) if SERIES.get("photo_check") else None
         if best == -1:
-            continue  # 쓸 만한 게 없음 → 다음 검색어
+            continue
         h = cands[best] if best is not None and 0 <= best < len(cands) else cands[0]
         data = download(h)
         time.sleep(2)
