@@ -23,7 +23,7 @@
 
 ## 구성
 - `scripts/write_episode.py` — Gemini 텍스트로 대본 작성 (상황: `config/situations.json` 순서, 장별 Pixabay 검색어 포함)
-- `scripts/render_episode.py` — Pixabay 사진 검색·다운로드(태그 관련도로 선택) + 반투명 자막 카드 합성 (1080x1350)
+- `scripts/render_episode.py` — Pixabay 사진 검색·다운로드 + 반투명 자막 카드 합성 (1080x1350). 사진은 **"여성 + 장소(script의 place)" 인물 사진 우선**, 없으면 장소·사물 사진으로 대체. 패션·뷰티·사무실 사진은 제외
 - `scripts/publish_instagram.py` — 인스타 Graph API(Instagram 로그인 방식) 캐러셀 게시, 캡션에 Pixabay 출처 자동 추가
 - `config/series.json` — 시리즈 설정 (`photo_check`: Gemini가 사진 후보를 직접 보고 고르기, 기본 false)
 - `episodes/epNNN/` — script.json, credits.json, raw/, final/, issue.json, APPROVED, published.json
