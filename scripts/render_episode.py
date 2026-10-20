@@ -198,8 +198,24 @@ def woman_score(hit):
 
 TRAVEL = {"travel", "traveler", "traveller", "tourist", "tourism", "trip", "vacation", "holiday", "journey",
           "airport", "hotel", "luggage", "suitcase", "backpack", "city", "street", "station", "flight"}
-OFFTOPIC = {"fashion", "model", "makeup", "make-up", "beauty", "sexy", "rock", "office", "workplace",
-            "lingerie", "bikini", "glamour", "studio", "business", "wedding", "bride"}
+# 여성이 나오는 패션·뷰티 사진은 오히려 우선 (사용자 요청)
+BEAUTY = {"fashion", "model", "makeup", "make-up", "beauty", "beautiful", "pretty", "portrait", "stylish", "elegant"}
+# 상황과 안 맞거나 게시하기 부적절한 사진은 제외
+OFFTOPIC = {"rock", "office", "workplace", "business", "wedding", "bride",
+            "sexy", "lingerie", "bikini", "glamour", "erotic", "nude", "underwear"}
+
+
+def photo_score(hit, place, words):
+    tags, ws = tagset(hit)
+    s = woman_score(hit) * 2
+    if woman_score(hit) >= 2 and ws & BEAUTY:
+        s += 3
+    if place and (place[:5] in " ".join(tags)):
+        s += 2
+    if ws & TRAVEL:
+        s += 1
+    s += relevance(hit, words)
+    return s
 
 
 def tagset(hit):
@@ -226,7 +242,7 @@ def fetch_photo(key, query, avoid, context="", place=""):
                 if ws & OFFTOPIC:
                     continue
                 if want_woman:
-                    if woman_score(h) < 2 or not (ws & TRAVEL or place[:5] in " ".join(tags)):
+                    if woman_score(h) < 2 or not (ws & TRAVEL or ws & BEAUTY or place[:5] in " ".join(tags)):
                         continue
                 elif relevance(h, [w for w in q.split()]) < 1:
                     continue
@@ -236,7 +252,7 @@ def fetch_photo(key, query, avoid, context="", place=""):
                 break
         if not hits:
             continue
-        hits.sort(key=lambda h: (relevance(h, words + [place]), woman_score(h), h.get("likes", 0)), reverse=True)
+        hits.sort(key=lambda h: (photo_score(h, place, words), h.get("likes", 0)), reverse=True)
         cands = hits[:6]
         random.shuffle(cands)
         best = gemini_pick(cands, context, q) if SERIES.get("photo_check") else None
