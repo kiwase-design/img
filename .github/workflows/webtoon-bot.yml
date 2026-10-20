@@ -80,4 +80,4 @@ jobs:
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           GH_PAT: ${{ secrets.GH_PAT }}
           WAIT_UNTIL_9PM: ${{ github.event_name == 'schedule' && '1' || '' }}
-        run: python scripts/webtoon_bot.py ${{ steps.act.outputs.action }}
+        run: python scripts/webtoon_bot.py ${{ steps.act.outputs.action }} 
