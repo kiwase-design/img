@@ -105,5 +105,6 @@
   "tip": "노트북과 액체류 파우치는 가방 맨 위에 두면 빨라요.",
   "summary_query": "airplane window sky",
   "caption": "하루 한 장면 여행영어 #2 | 보안검색대 필수 영어\n\n공항 보안검색대 앞에만 서면 괜히 긴장되시죠? ✈️\n이 네 마디만 기억하면 당황하지 않고 통과할 수 있어요!\n\n✔️ Do I need to take off my jacket? — 외투도 벗어야 하나요?\n✔️ Should I take off my shoes too? — 신발도 벗어야 하나요?\n✔️ Please take out your laptop. — 노트북을 꺼내주세요.\n✔️ You're all clear! — 통과하셨습니다!\n\n저장해두고 여행 갈 때 꺼내 보세요! 💾\n\n#여행영어 #영어회화 #해외여행 #여행필수영어 #생활영어 #하루한장면여행영어 #공항영어 #보안검색대 #출국준비",
-  "writer_model": "gemini-3.8-flash"
+  "writer_model": "gemini-3.8-flash",
+  "place": "airport"
 }

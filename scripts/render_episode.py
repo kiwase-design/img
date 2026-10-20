@@ -196,28 +196,47 @@ def woman_score(hit):
     return s
 
 
-def fetch_photo(key, query, avoid, context=""):
-    """여성 인물 사진을 우선으로 검색어에 맞는 사진을 고른다. 없으면 장소 사진으로 넓혀 재검색."""
+TRAVEL = {"travel", "traveler", "traveller", "tourist", "tourism", "trip", "vacation", "holiday", "journey",
+          "airport", "hotel", "luggage", "suitcase", "backpack", "city", "street", "station", "flight"}
+OFFTOPIC = {"fashion", "model", "makeup", "make-up", "beauty", "sexy", "rock", "office", "workplace",
+            "lingerie", "bikini", "glamour", "studio", "business", "wedding", "bride"}
+
+
+def tagset(hit):
+    tags = [t.strip() for t in hit.get("tags", "").lower().split(",")]
+    return tags, {w for t in tags for w in t.split()}
+
+
+def fetch_photo(key, query, avoid, context="", place=""):
+    """여성 여행자가 그 장소에 있는 사진을 우선으로 고른다. 없으면 장소/사물 사진으로 넓혀 재검색."""
     words = [w for w in query.lower().split() if w not in STOP and w not in WOMAN]
-    place = [" ".join(words)]
-    if len(words) > 1:
-        place += [" ".join(words[:2]), words[0]]
-    # 1순위: 여성 + 장소/사물 → 2순위: 장소/사물만
-    tries = [("woman " + q, True) for q in dict.fromkeys(place)] + [(q, False) for q in dict.fromkeys(place)]
-    for q, want_woman in tries:
-        qw = [w for w in q.split() if w not in WOMAN]
-        need = max(1, len(qw) - 1)
+    place = (place or (words[0] if words else "travel")).lower()
+    tries = []
+    for q in (f"woman {place} {words[0] if words and words[0] != place else 'travel'}",
+              f"woman {place}", f"woman tourist {place}", "woman travel"):
+        tries.append((q, True))
+    tries += [(" ".join(words), False), (" ".join(words[:2]), False), (place, False)]
+    for q, want_woman in dict.fromkeys(tries):
         hits = []
         for ori in ("vertical", "all"):
             hits = [h for h in search_pixabay(key, q, ori) if h["id"] not in avoid]
-            hits = [h for h in hits if relevance(h, qw) >= need]
-            if want_woman:
-                hits = [h for h in hits if woman_score(h) >= 2]
+            ok = []
+            for h in hits:
+                tags, ws = tagset(h)
+                if ws & OFFTOPIC:
+                    continue
+                if want_woman:
+                    if woman_score(h) < 2 or not (ws & TRAVEL or place[:5] in " ".join(tags)):
+                        continue
+                elif relevance(h, [w for w in q.split()]) < 1:
+                    continue
+                ok.append(h)
+            hits = ok
             if len(hits) >= 3:
                 break
         if not hits:
             continue
-        hits.sort(key=lambda h: (woman_score(h), relevance(h, qw), h.get("likes", 0)), reverse=True)
+        hits.sort(key=lambda h: (relevance(h, words + [place]), woman_score(h), h.get("likes", 0)), reverse=True)
         cands = hits[:6]
         random.shuffle(cands)
         best = gemini_pick(cands, context, q) if SERIES.get("photo_check") else None
@@ -403,7 +422,7 @@ def main():
         raw = f"{ep_dir}/raw/cut{n}.jpg"
         if not compose_only and (force or not os.path.exists(raw)):
             try:
-                img, cred = fetch_photo(key, query, avoid, context)
+                img, cred = fetch_photo(key, query, avoid, context, s.get("place", s["cover_query"].split()[0]))
             except (urllib.error.HTTPError, RuntimeError) as e:
                 img, cred = None, None
                 report.append(f"- {n}장: ❌ {e}")

@@ -119,6 +119,7 @@ Return JSON only:
   "other_label": "Korean label for the other person, 2–3 chars: 직원 / 현지인 / 기사님 / 의사 / 약사 etc.",
   "headline": "Korean cover headline, max 10 chars (e.g. 공항 체크인)",
   "sub": "Korean cover subline, max 16 chars, catchy (e.g. 이 네 마디면 끝!)",
+  "place": "ONE common English noun for where this happens (airport, hotel, restaurant, cafe, street, station, shop, pharmacy, hospital, taxi, beach...)",
   "cover_query": "2–4 word search query for an attractive wide photo of the place",
   "panels": [
     {{"photo_query": "2–4 word search query",
