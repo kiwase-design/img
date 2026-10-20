@@ -384,6 +384,38 @@ def publish_now():
     publish(only=d)
 
 
+def reel_test():
+    """config/trigger.json 의 episode 로 릴스 영상만 만들어 커밋 (게시 안 함)."""
+    d = json.load(open("config/trigger.json", encoding="utf-8"))["episode"].rstrip("/")
+    sh("python", "scripts/make_reel.py", d)
+    git_push(f"{d} 릴스 테스트 영상")
+
+
+def cleanup(days=30):
+    """게시 후 days일 지난 편의 영상·사진 파일을 지워 레포 용량을 관리 (대본·출처·기록은 남김)."""
+    removed = []
+    for d in episodes():
+        p = f"{d}/published.json"
+        if not os.path.exists(p):
+            continue
+        try:
+            when = datetime.fromisoformat(json.load(open(p))["published_at"])
+        except Exception:
+            continue
+        if (now() - when).days < days:
+            continue
+        for sub in ("raw", "final"):
+            if os.path.isdir(f"{d}/{sub}"):
+                shutil.rmtree(f"{d}/{sub}")
+                removed.append(f"{d}/{sub}")
+        if os.path.exists(f"{d}/reel.mp4"):
+            os.remove(f"{d}/reel.mp4")
+            removed.append(f"{d}/reel.mp4")
+    if removed:
+        git_push(f"{days}일 지난 영상·사진 정리 ({len(removed)}개)")
+    print("정리:", removed or "없음")
+
+
 def dryrun():
     """게시·이슈 없이 다음 편 대본+사진을 checks/dryrun 에 만들어 본다 (테스트용)."""
     d = "checks/dryrun/ep099"
@@ -405,7 +437,8 @@ if __name__ == "__main__":
     action = sys.argv[1]
     try:
         {"generate": generate, "publish": publish, "command": command, "refresh": refresh,
-         "rerender": rerender, "dryrun": dryrun, "publish_now": publish_now}[action]()
+         "rerender": rerender, "dryrun": dryrun, "publish_now": publish_now,
+         "reel_test": reel_test, "cleanup": cleanup}[action]()
     except BaseException as e:
         if isinstance(e, SystemExit) and e.code in (0, None):
             raise

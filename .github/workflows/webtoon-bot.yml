@@ -45,16 +45,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 의존성 설치
-        run: |
-          pip install -q pillow
-          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra
-          mkdir -p fonts
-          url=$(python -c "import json;print(json.load(open('config/series.json')).get('font_url',''))")
-          [ -n "$url" ] && curl -fsSL -o fonts/hand.ttf "$url" || echo "손글씨 폰트 없음 — 기본 폰트 사용"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: 실행할 작업 결정
         id: act
         run: |
@@ -72,6 +62,32 @@ jobs:
           echo "action=$a" >> "$GITHUB_OUTPUT"
           echo "작업: $a"
 
+      - name: 의존성 설치
+        run: |
+          pip install -q pillow
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra
+          mkdir -p fonts
+          url=$(python -c "import json;print(json.load(open('config/series.json')).get('font_url',''))")
+          [ -n "$url" ] && curl -fsSL -o fonts/hand.ttf "$url" || echo "손글씨 폰트 없음 — 기본 폰트 사용"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 음성·영상 도구 캐시
+        if: contains(fromJSON('["publish","publish_now","reel_test","command"]'), steps.act.outputs.action)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/pip
+          key: tts-kokoro-v1
+
+      - name: 음성·영상 도구 설치 (Kokoro TTS, ffmpeg)
+        if: contains(fromJSON('["publish","publish_now","reel_test","command"]'), steps.act.outputs.action)
+        run: |
+          sudo apt-get install -y -qq espeak-ng ffmpeg
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q "kokoro>=0.9" soundfile numpy
+
       - name: 봇 실행
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,4 +96,4 @@ jobs:
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           GH_PAT: ${{ secrets.GH_PAT }}
           WAIT_UNTIL_9PM: ${{ github.event_name == 'schedule' && '1' || '' }}
-        run: python scripts/webtoon_bot.py ${{ steps.act.outputs.action }} 
+        run: python scripts/webtoon_bot.py ${{ steps.act.outputs.action }}
