@@ -34,7 +34,10 @@ def call(method, path, token, params=None):
             err = json.loads(e.read()).get("error", {})
         except Exception:
             err = {}
-        raise RuntimeError(f"{path}: HTTP {e.code} — {err.get('message', '')} (code {err.get('code')})")
+        extra = "".join(f", {k} {err[k]}" for k in ("error_subcode", "type") if err.get(k))
+        msg = err.get("error_user_msg") or err.get("error_user_title") or ""
+        raise RuntimeError(f"{path}: HTTP {e.code} — {err.get('message', '')} (code {err.get('code')}{extra})"
+                           + (f" / {msg}" if msg else ""))
 
 
 class _Done(Exception):
@@ -104,6 +107,12 @@ def main():
     except RuntimeError as e:
         with open(f"{ep_dir}/publish_error.md", "w", encoding="utf-8") as f:
             f.write(f"# 게시 실패\n\n- 시각: {kst:%Y-%m-%d %H:%M KST}\n- 오류: {e}\n")
+            if "access blocked" in str(e).lower() or "(code 190" in str(e):
+                f.write("\n**원인: 인스타그램(Meta)이 이 토큰의 API 접근을 막았어요.** 코드 문제가 아니라 토큰을 새로 발급해야 해요.\n"
+                        "1. 인스타그램 앱에서 보안 알림('본인이 맞나요?' 등)이 있으면 확인\n"
+                        "2. developers.facebook.com → 내 앱 → Instagram → 'Instagram 로그인으로 API 설정' → 계정 옆 **토큰 생성**\n"
+                        "3. GitHub 레포 Settings → Secrets → `INSTAGRAM_ACCESS_TOKEN` 값을 새 토큰으로 교체\n"
+                        "4. 이 이슈에 `지금 게시` 댓글\n")
         print(f"❌ {e}")
         raise SystemExit(1)
 

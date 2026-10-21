@@ -49,7 +49,8 @@ def main():
             )
         else:
             err = data.get("error", {})
-            lines.append(f"- 토큰: ❌ HTTP {status} — {err.get('message', '')} (code {err.get('code')})")
+            lines.append(f"- 토큰: ❌ HTTP {status} — {err.get('message', '')} (code {err.get('code')}, "
+                         f"subcode {err.get('error_subcode')}, type {err.get('type')}) {err.get('error_user_msg', '')}")
 
     status, _ = get(SAMPLE)
     if status == 200:
