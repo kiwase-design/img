@@ -1,2 +1,3 @@
 - 10-20 16:01 #5 kiwase-design [OWNER] '지금 게시' ep=episodes/ep002 status=pending
 - 10-20 17:35 #6 kiwase-design [OWNER] '승인' ep=episodes/ep003 status=pending
+- 10-21 12:33 #7 kiwase-design [OWNER] '지금 게시' ep=episodes/ep004 status=pending
