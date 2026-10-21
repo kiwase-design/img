@@ -1,0 +1,110 @@
+{
+  "episode": 4,
+  "topic": "입국심사 질문에 답하기",
+  "title": "입국심사 필수 영어",
+  "other_label": "심사관",
+  "headline": "입국심사 영어",
+  "sub": "떨지 말고 딱 네 마디만!",
+  "place": "airport",
+  "cover_query": "airport passport control",
+  "panels": [
+    {
+      "photo_query": "airport terminal hall",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "What is the purpose of your visit?",
+          "ko": "이번 방문 목적이 무엇인가요?"
+        },
+        {
+          "speaker": "me",
+          "en": "I'm here for vacation, just sightseeing.",
+          "ko": "휴가 왔어요, 그냥 관광하러 왔습니다."
+        }
+      ],
+      "cut": 2,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "travel suitcase passport",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "How long do you plan to stay?",
+          "ko": "얼마나 머무실 예정인가요?"
+        },
+        {
+          "speaker": "me",
+          "en": "I'll be here for five days.",
+          "ko": "5일 동안 머물 예정이에요."
+        }
+      ],
+      "cut": 3,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "hotel reservation paper",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Where will you be staying?",
+          "ko": "어디에 묵으실 예정인가요?"
+        },
+        {
+          "speaker": "me",
+          "en": "I'm staying at a hotel in the city center.",
+          "ko": "시내에 있는 호텔에 머물러요."
+        }
+      ],
+      "cut": 4,
+      "characters": [
+        "me"
+      ]
+    },
+    {
+      "photo_query": "airline ticket passport",
+      "dialogues": [
+        {
+          "speaker": "staff",
+          "en": "Do you have a return ticket?",
+          "ko": "돌아가는 항공권 있으신가요?"
+        },
+        {
+          "speaker": "me",
+          "en": "Yes, here is my return flight confirmation.",
+          "ko": "네, 여기 귀국 항공권 예약 내역이에요."
+        }
+      ],
+      "cut": 5,
+      "characters": [
+        "me"
+      ]
+    }
+  ],
+  "key_phrases": [
+    {
+      "en": "I'm here for vacation.",
+      "ko": "휴가차 여행 왔어요."
+    },
+    {
+      "en": "I'll be here for five days.",
+      "ko": "5일 동안 머물 예정이에요."
+    },
+    {
+      "en": "I'm staying at a hotel.",
+      "ko": "호텔에 머물 예정이에요."
+    },
+    {
+      "en": "Here is my return flight confirmation.",
+      "ko": "귀국 항공권 예약 내역 여기 있어요."
+    }
+  ],
+  "tip": "호텔 바우처와 귀국 항공권은 미리 캡처해 두세요!",
+  "summary_query": "airplane window clouds",
+  "caption": "하루 한 장면 여행영어 #4 | 입국심사 필수 영어\n\n공항 입국심사대만 서면 가슴이 두근거리시나요?\n자주 묻는 질문 4가지만 알면 긴장 끝!\n\n✔️ I'm here for vacation. — 휴가차 여행 왔어요.\n✔️ I'll be here for five days. — 5일 동안 머물 예정이에요.\n✔️ I'm staying at a hotel. — 호텔에 머물 예정이에요.\n✔️ Here is my return flight confirmation. — 귀국 항공권 예약 내역 여기 있어요.\n\n저장해두고 여행 갈 때 꺼내 보세요! 💾\n\n#여행영어 #영어회화 #해외여행 #여행필수영어 #생활영어 #하루한장면여행영어 #입국심사 #공항영어 #해외여행준비",
+  "writer_model": "gemini-3.8-flash"
+}
