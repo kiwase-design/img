@@ -1,6 +1,6 @@
 # 게시 실패
 
-- 시각: 2026-10-24 00:53 KST
+- 시각: 2026-10-24 01:44 KST
 - 오류: me: HTTP 400 — API access blocked. (code 200, type OAuthException)
 
 **원인: 인스타그램(Meta)이 이 토큰의 API 접근을 막았어요.** 코드 문제가 아니라 토큰을 새로 발급해야 해요.
